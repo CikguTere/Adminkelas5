@@ -1,0 +1,1382 @@
+import React, { useState, useRef, useEffect, useCallback } from 'react'; // Import useRef, useEffect, useCallback
+import { Calendar, Users, CheckSquare, Book, BarChart2, Edit, Trash2, PlusCircle, UserCircle, Mail, Phone, Award, Target, Download, LogOut, BrainCircuit, ClipboardList, GraduationCap, ArrowLeft, X, LayoutDashboard } from 'lucide-react';
+
+// Declare scriptJsPDF with a broader scope to avoid ReferenceError
+let scriptJsPDF; 
+
+// Load jsPDF and html2canvas dynamically if not already loaded (for Canvas environment)
+if (typeof window !== 'undefined' && !window.html2canvas) {
+  const scriptHtml2canvas = document.createElement('script');
+  scriptHtml2canvas.src = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js';
+  scriptHtml2canvas.onload = () => {
+    if (typeof window !== 'undefined' && !window.jspdf) {
+      scriptJsPDF = document.createElement('script'); // Assign to the outer variable
+      scriptJsPDF.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+      document.head.appendChild(scriptJsPDF);
+    }
+  };
+  document.head.appendChild(scriptHtml2canvas);
+} else if (typeof window !== 'undefined' && window.html2canvas && !window.jspdf) {
+  // If html2canvas was already loaded (e.g., from a previous render/hot-reload),
+  // but jspdf is not, load jspdf directly.
+  scriptJsPDF = document.createElement('script'); // Assign to the outer variable
+  scriptJsPDF.src = 'https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js';
+  document.head.appendChild(scriptJsPDF);
+}
+
+
+// Add a basic CSS rule for print-area to ensure html2canvas can target it visually
+const style = document.createElement('style');
+style.innerHTML = `
+  .print-area {
+    background-color: #fff;
+    padding: 15px;
+  }
+  @media print {
+    .print-area .flex.gap-3 {
+      display: none;
+    }
+  }
+`;
+document.head.appendChild(style);
+
+
+// --- Initial Mock Data (moved to App component's state management) ---
+const initialStudentData = [
+  { id: 1, nisn: '0051234567', name: 'Budi Santoso', gender: 'Laki-laki', birthPlace: 'Jakarta', birthDate: '2013-05-10', parent: 'Ahmad Santoso', address: 'Jl. Merdeka No. 1' },
+  { id: 2, nisn: '0051234568', name: 'Citra Lestari', gender: 'Perempuan', birthPlace: 'Bandung', birthDate: '2013-08-15', parent: 'Dewi Lestari', address: 'Jl. Pahlawan No. 22' },
+  { id: 3, nisn: '0051234569', name: 'Eka Wijaya', gender: 'Laki-laki', birthPlace: 'Surabaya', birthDate: '2014-01-20', parent: 'Joko Wijaya', address: 'Jl. Kenanga No. 5' },
+  { id: 4, nisn: '0051234570', name: 'Fani Indah', gender: 'Perempuan', birthPlace: 'Bogor', birthDate: '2013-03-25', parent: 'Siti Aminah', address: 'Jl. Mawar No. 10' },
+  { id: 5, nisn: '0051234571', name: 'Gilang Ramadhan', gender: 'Laki-laki', birthPlace: 'Semarang', birthDate: '2014-07-01', parent: 'Wahyu Nugroho', address: 'Jl. Anggrek No. 15' },
+];
+
+const initialSchedule = {
+  Senin: [{ id: 1, time: '07:30 - 09:00', subject: 'Matematika' }, { id: 2, time: '09:30 - 11:00', subject: 'Bahasa Indonesia' }],
+  Selasa: [{ id: 3, time: '07:30 - 09:00', subject: 'IPA' }, { id: 4, time: '09:30 - 11:00', subject: 'IPS' }],
+  Rabu: [{ id: 5, time: '07:30 - 09:00', subject: 'PPKn' }, { id: 6, time: '09:30 - 11:00', subject: 'Seni Budaya' }],
+  Kamis: [{ id: 7, time: '07:30 - 09:00', subject: 'Bahasa Inggris' }, { id: 8, time: '09:30 - 11:00', subject: 'PJOK' }],
+  Jumat: [{ id: 9, time: '07:30 - 09:00', subject: 'Pramuka' }],
+};
+const initialGuruProfile = {
+  name: 'Anisa Pujiastuti, S.Pd.',
+  nip: '198508172010012001',
+  email: 'anisa.p@guru.sd.belajar.id',
+  whatsapp: '081234567890',
+  photo: 'https://placehold.co/128x128/E0E7FF/4F46E5?text=Foto'
+};
+
+// More extensive mock data for Daftar Hadir to enable meaningful recaps
+const initialDaftarHadir = [
+  { id: 1, date: '2025-07-01', studentName: 'Budi Santoso', status: 'Hadir' },
+  { id: 2, date: '2025-07-01', studentName: 'Citra Lestari', status: 'Hadir' },
+  { id: 3, date: '2025-07-01', studentName: 'Eka Wijaya', status: 'Alpha' },
+  { id: 4, date: '2025-07-01', studentName: 'Fani Indah', status: 'Hadir' },
+  { id: 5, date: '2025-07-01', studentName: 'Gilang Ramadhan', status: 'Sakit' },
+
+  { id: 6, date: '2025-07-02', studentName: 'Budi Santoso', status: 'Hadir' },
+  { id: 7, date: '2025-07-02', studentName: 'Citra Lestari', status: 'Izin' },
+  { id: 8, date: '2025-07-02', studentName: 'Eka Wijaya', status: 'Hadir' },
+  { id: 9, date: '2025-07-02', studentName: 'Fani Indah', status: 'Hadir' },
+  { id: 10, date: '2025-07-02', studentName: 'Gilang Ramadhan', status: 'Hadir' },
+  
+  { id: 11, date: '2025-07-03', studentName: 'Budi Santoso', status: 'Hadir' },
+  { id: 12, date: '2025-07-03', studentName: 'Citra Lestari', status: 'Hadir' },
+  { id: 13, date: '2025-07-03', studentName: 'Eka Wijaya', status: 'Hadir' },
+  { id: 14, date: '2025-07-03', studentName: 'Fani Indah', status: 'Alpha' },
+  { id: 15, date: '2025-07-03', studentName: 'Gilang Ramadhan', status: 'Sakit' },
+
+  { id: 16, date: '2025-08-01', studentName: 'Budi Santoso', status: 'Hadir' },
+  { id: 17, date: '2025-08-01', studentName: 'Citra Lestari', status: 'Hadir' },
+  { id: 18, date: '2025-08-01', studentName: 'Eka Wijaya', status: 'Hadir' },
+  { id: 19, date: '2025-08-01', studentName: 'Fani Indah', status: 'Hadir' },
+  { id: 20, date: '2025-08-01', studentName: 'Gilang Ramadhan', status: 'Hadir' },
+];
+
+const initialProgramSemesterTahunan = [
+  { id: 1, programName: 'Penyusunan RPP Semester Ganjil', description: 'Menyusun Rencana Pelaksanaan Pembelajaran untuk semester ganjil tahun ajaran 2025/2026.', year: '2025' },
+  { id: 2, programName: 'Evaluasi Pembelajaran IPA', description: 'Evaluasi hasil pembelajaran mata pelajaran IPA kelas 5.', year: '2025' },
+];
+
+const initialKalenderPendidikan = [
+  { id: 1, eventName: 'Libur Idul Adha', date: '2025-06-17', notes: 'Libur Nasional' },
+  { id: 2, eventName: 'Penilaian Tengah Semester Ganjil', date: '2025-09-20', notes: 'Meliputi semua mata pelajaran' },
+];
+
+const initialAsesmen = [
+  { id: 1, assessmentName: 'Ulangan Harian Matematika - Pecahan', date: '2025-07-15', subject: 'Matematika', link: 'https://docs.google.com/forms/d/e/1FAIpQLSc_example_math/viewform' },
+  { id: 2, assessmentName: 'Proyek Sains - Ekosistem', date: '2025-08-01', subject: 'IPA', link: 'https://docs.google.com/document/d/1C_example_project/edit' },
+  { id: 3, assessmentName: 'Kuis Sejarah - Pahlawan Nasional', date: '2025-08-10', subject: 'IPS', link: 'https://quizizz.com/admin/quiz/61_example_history/start' },
+];
+
+const initialKaryaInovatif = [
+  { id: 1, workTitle: 'Media Pembelajaran Interaktif "Pecahan Asyik"', description: 'Aplikasi interaktif untuk membantu siswa memahami konsep pecahan.', year: '2024' },
+  { id: 2, workTitle: 'Modul Digital IPS Kelas 5', description: 'Modul pembelajaran IPS berbasis digital dengan video dan kuis interaktif.', year: '2023' },
+];
+
+const initialProgramKerjaGuru = [
+  { id: 1, programName: 'Peningkatan Minat Baca Siswa', description: 'Mengadakan program membaca 15 menit sebelum pelajaran dimulai.', status: 'Berjalan' },
+  { id: 2, programName: 'Pembinaan Olimpiade Sains', description: 'Membimbing siswa terpilih untuk persiapan olimpiade sains.', status: 'Belum Dimulai' },
+];
+
+const initialModulAjar = [
+  {id: 1, title: 'Modul Matematika - Pecahan', link: 'https://docs.google.com/document/d/1example/edit'}
+];
+
+const initialRiwayatPelatihan = [
+  {id: 1, topic: 'Kurikulum Merdeka', organizer: 'Dinas Pendidikan', date: '2024-03-10'}
+];
+
+// Initial data for Daftar Nilai
+const initialDaftarNilai = [
+  { id: 1, subjectName: 'Matematika', googleSheetLink: 'https://docs.google.com/spreadsheets/d/1B-z_example_math/edit?usp=sharing' },
+  { id: 2, subjectName: 'Bahasa Indonesia', googleSheetLink: 'https://docs.google.com/spreadsheets/d/1A-y_example_indo/edit?usp=sharing' },
+  { id: 3, subjectName: 'IPA', googleSheetLink: 'https://docs.google.com/spreadsheets/d/1C-x_example_ipa/edit?usp=sharing' },
+];
+
+
+// --- Reusable Components ---
+const Modal = ({ isOpen, onClose, title, children }) => {
+  if (!isOpen) return null;
+  return (
+    <div className="fixed inset-0 bg-black bg-opacity-50 z-50 flex justify-center items-center p-4">
+      <div className="bg-white rounded-lg shadow-xl w-full max-w-lg p-6 relative">
+        <button onClick={onClose} className="absolute top-4 right-4 text-gray-400 hover:text-gray-600">
+          <X size={24} />
+        </button>
+        <h2 className="text-2xl font-bold mb-4 text-gray-800">{title}</h2>
+        {children}
+      </div>
+    </div>
+  );
+};
+
+// Modified Header component to optionally hide the global download button
+const Header = ({ title, icon: Icon, onBack, onAdd, onDownload, showGlobalDownload = true }) => (
+  <div className="bg-white p-4 shadow-md rounded-lg mb-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
+    <div className="flex items-center">
+      {onBack && <button onClick={onBack} className="mr-4 text-gray-500 hover:text-blue-600 transition-colors"> <ArrowLeft size={24} /> </button>}
+      <div className="bg-blue-100 text-blue-600 p-3 rounded-lg mr-4"> <Icon size={24} /> </div>
+      <h1 className="text-2xl font-bold text-gray-800">{title}</h1>
+    </div>
+    <div className="flex gap-2 w-full sm:w-auto">
+      {onAdd && ( <button onClick={onAdd} className="flex-1 sm:flex-initial flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm"> <PlusCircle size={18} className="mr-2" /> Tambah </button> )}
+      {showGlobalDownload && (
+        <button onClick={onDownload} className="flex-1 sm:flex-initial flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm"> <Download size={18} className="mr-2" /> PDF </button>
+      )}
+    </div>
+  </div>
+);
+
+// --- Content View Components ---
+
+const ProfilGuru = ({ onBack, profile, setProfile, showMessage, handleDownload }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [previewPhoto, setPreviewPhoto] = useState(profile.photo);
+  const profileRef = useRef(null);
+
+  React.useEffect(() => {
+    setPreviewPhoto(profile.photo);
+  }, [profile.photo]);
+
+  const handleFileChange = (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (file.size > 1 * 1024 * 1024) {
+        showMessage('Ukuran file maksimum adalah 1 MB.', 'Ukuran File Terlalu Besar');
+        e.target.value = '';
+        setPreviewPhoto(profile.photo);
+        return;
+      }
+
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setPreviewPhoto(reader.result);
+      };
+      reader.readAsDataURL(file);
+    } else {
+      setPreviewPhoto(profile.photo);
+    }
+  };
+
+  const handleClearPhoto = () => {
+    setPreviewPhoto(null);
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const updatedProfile = {
+      ...Object.fromEntries(formData.entries()),
+      photo: previewPhoto || 'https://placehold.co/128x128/E0E7FF/4F46E5?text=Foto'
+    };
+    delete updatedProfile.photoFile;
+
+    setProfile(updatedProfile);
+    setIsModalOpen(false);
+    showMessage('Profil guru berhasil diperbarui.', 'Berhasil');
+  };
+
+  return (
+    <div>
+      <Header 
+        title="Profil Guru" 
+        icon={UserCircle} 
+        onDownload={() => handleDownload(profileRef, 'profil_guru.pdf')}
+        onBack={onBack} 
+      />
+      <div ref={profileRef} className="bg-white p-8 rounded-lg shadow-md flex flex-col md:flex-row items-center gap-8 print-area">
+        <div className="flex-shrink-0">
+          <img src={profile.photo} onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/128x128/E0E7FF/4F46E5?text=Gagal+Muat'; }} alt="Foto Profil Guru" className="w-32 h-32 rounded-full object-cover shadow-lg border-4 border-blue-200" />
+        </div>
+        <div className="flex-grow">
+          <h2 className="text-3xl font-bold text-gray-800">{profile.name}</h2>
+          <p className="text-lg text-gray-500 mb-4">NIP. {profile.nip}</p>
+          <div className="space-y-2">
+            <div className="flex items-center text-gray-700"> <Mail size={20} className="mr-3 text-blue-500" /> <span>{profile.email}</span> </div>
+            <div className="flex items-center text-gray-700"> <Phone size={20} className="mr-3 text-green-500" /> <span>{profile.whatsapp}</span> </div>
+          </div>
+        </div>
+        <button onClick={() => setIsModalOpen(true)} className="mt-4 md:mt-0 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm flex items-center"> <Edit size={18} className="mr-2" /> Ubah Profil </button>
+      </div>
+      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Ubah Profil Guru">
+        <form onSubmit={handleSave}>
+          <div className="space-y-4">
+            <input name="name" placeholder="Nama Lengkap" defaultValue={profile.name} className="w-full p-2 border rounded" required />
+            <input name="nip" placeholder="NIP" defaultValue={profile.nip} className="w-full p-2 border rounded" required />
+            <input name="email" type="email" placeholder="Email" defaultValue={profile.email} className="w-full p-2 border rounded" required />
+            <input name="whatsapp" placeholder="Nomor Whatsapp" defaultValue={profile.whatsapp} className="w-full p-2 border rounded" />
+            
+            {/* File Input for Photo Upload */}
+            <label htmlFor="photoFile" className="block text-gray-700 text-sm font-bold mb-1">Unggah Foto Profil (Max 1MB)</label>
+            <input 
+              type="file" 
+              id="photoFile" 
+              name="photoFile" 
+              accept="image/*" 
+              onChange={handleFileChange} 
+              className="w-full p-2 border rounded file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" 
+            />
+            {/* Photo Preview */}
+            {previewPhoto && (
+              <div className="mt-4 flex items-center gap-4 p-2 border rounded-lg bg-gray-50">
+                <img src={previewPhoto} alt="Pratinjau Foto" className="w-20 h-20 rounded-full object-cover shadow-sm border border-gray-200" />
+                <button 
+                  type="button" 
+                  onClick={handleClearPhoto} 
+                  className="flex items-center text-red-500 hover:text-red-700 transition-colors px-3 py-1 rounded-md border border-red-300 bg-white hover:bg-red-50"
+                >
+                  <Trash2 size={16} className="mr-1"/> Hapus Foto
+                </button>
+              </div>
+            )}
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <button type="button" onClick={() => setIsModalOpen(false)} className="py-2 px-4 bg-gray-200 rounded-lg">Batal</button>
+            <button type="submit" className="py-2 px-4 bg-blue-500 text-white rounded-lg">Simpan Perubahan</button>
+          </div>
+        </form>
+      </Modal>
+    </div>
+  );
+};
+
+// JadwalMengajar component now receives schedule and setSchedule from App
+const JadwalMengajar = ({ onBack, showMessage, handleDownload, schedule, setSchedule }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingLesson, setEditingLesson] = useState(null); // {day, lesson}
+  const [lessonToDelete, setLessonToDelete] = useState(null); // {day, lessonId}
+  const scheduleRef = useRef(null);
+
+  const handleOpenModal = (day = null, lesson = null) => {
+    setEditingLesson({ day, lesson });
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingLesson(null);
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const lessonData = {
+      id: editingLesson?.lesson?.id || Date.now(),
+      time: formData.get('time'),
+      subject: formData.get('subject')
+    };
+    const day = formData.get('day');
+
+    setSchedule(prev => {
+      const newSchedule = { ...prev };
+      // Remove from old day if day was changed
+      if(editingLesson && editingLesson.day && editingLesson.day !== day) {
+        newSchedule[editingLesson.day] = newSchedule[editingLesson.day].filter(l => l.id !== editingLesson.lesson.id);
+      }
+      // Add/Update in new day
+      const dayLessons = newSchedule[day] ? [...newSchedule[day]] : [];
+      const existingIndex = dayLessons.findIndex(l => l.id === lessonData.id);
+      if (existingIndex > -1) {
+        dayLessons[existingIndex] = lessonData;
+      } else {
+        dayLessons.push(lessonData);
+      }
+      // Sort lessons by time
+      newSchedule[day] = dayLessons.sort((a, b) => a.time.localeCompare(b.time));
+      return newSchedule;
+    });
+    handleCloseModal();
+  };
+  
+  const handleDelete = () => {
+    if (!lessonToDelete) return;
+    const { day, lessonId } = lessonToDelete;
+    setSchedule(prev => ({
+      ...prev,
+      [day]: prev[day].filter(l => l.id !== lessonId)
+    }));
+    setLessonToDelete(null);
+  };
+
+  return (
+    <div>
+      <Header 
+        title="Jadwal Mengajar" 
+        icon={Calendar} 
+        onDownload={() => handleDownload(scheduleRef, 'jadwal_mengajar.pdf')}
+        onBack={onBack} 
+        onAdd={() => handleOpenModal()} 
+      />
+      <div ref={scheduleRef} className="bg-white p-6 rounded-lg shadow-md print-area">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5 gap-4">
+          {Object.entries(schedule).map(([day, lessons]) => (
+            <div key={day} className="border border-gray-200 rounded-lg p-4 bg-gray-50">
+              <h3 className="font-bold text-lg text-gray-700 mb-3">{day}</h3>
+              <ul className="space-y-2">
+                {lessons.length === 0 ? (
+                  <li className="text-sm p-2 text-gray-500">Tidak ada jadwal</li>
+                ) : (
+                  lessons.map((lesson) => (
+                    <li key={lesson.id} className="text-sm p-2 bg-white rounded-md shadow-sm flex justify-between items-center">
+                      <div>
+                        <p className="font-semibold text-blue-600">{lesson.time}</p>
+                        <p className="text-gray-600">{lesson.subject}</p>
+                      </div>
+                      <div className="flex gap-2">
+                        <button onClick={() => handleOpenModal(day, lesson)} className="text-yellow-500 hover:text-yellow-700"><Edit size={16}/></button>
+                        <button onClick={() => setLessonToDelete({ day, lessonId: lesson.id })} className="text-red-500 hover:text-red-700"><Trash2 size={16}/></button>
+                      </div>
+                    </li>
+                  ))
+                )}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </div>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingLesson?.lesson ? 'Ubah Jadwal' : 'Tambah Jadwal'}>
+        <form onSubmit={handleSave}>
+          <div className="space-y-4">
+            <select name="day" defaultValue={editingLesson?.day || "Senin"} className="w-full p-2 border rounded" required>
+              {Object.keys(initialSchedule).map(day => <option key={day} value={day}>{day}</option>)}
+            </select>
+            <input name="time" placeholder="Waktu (e.g., 07:30 - 09:00)" defaultValue={editingLesson?.lesson?.time} className="w-full p-2 border rounded" required />
+            <input name="subject" placeholder="Mata Pelajaran" defaultValue={editingLesson?.lesson?.subject} className="w-full p-2 border rounded" required />
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <button type="button" onClick={handleCloseModal} className="py-2 px-4 bg-gray-200 rounded-lg">Batal</button>
+            <button type="submit" className="py-2 px-4 bg-blue-500 text-white rounded-lg">Simpan</button>
+          </div>
+        </form>
+      </Modal>
+      <Modal isOpen={!!lessonToDelete} onClose={() => setLessonToDelete(null)} title="Konfirmasi Hapus">
+        <p>Apakah Anda yakin ingin menghapus jadwal ini?</p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button type="button" onClick={() => setLessonToDelete(null)} className="py-2 px-4 bg-gray-200 rounded-lg">Batal</button>
+          <button type="button" onClick={handleDelete} className="py-2 px-4 bg-red-500 text-white rounded-lg">Ya, Hapus</button>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// DataSiswa component now receives students and setStudents from App
+const DataSiswa = ({ onBack, showMessage, handleDownload, students, setStudents }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingStudent, setEditingStudent] = useState(null);
+  const [studentToDelete, setStudentToDelete] = useState(null);
+  const studentsRef = useRef(null);
+
+
+  const handleOpenModal = (student = null) => {
+    setEditingStudent(student);
+    setIsModalOpen(true);
+  };
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingStudent(null);
+  };
+  const handleSaveStudent = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const studentData = Object.fromEntries(formData.entries());
+    if (editingStudent) {
+      setStudents(students.map(s => s.id === editingStudent.id ? { ...s, ...studentData, id: s.id } : s));
+    } else {
+      setStudents([...students, { ...studentData, id: Date.now() }]);
+    }
+    handleCloseModal();
+  };
+  const confirmDelete = () => {
+    if (studentToDelete) {
+      setStudents(students.filter(s => s.id !== studentToDelete.id));
+      setStudentToDelete(null);
+    }
+  };
+
+
+  return (
+    <div>
+      <Header 
+        title="Data Siswa" 
+        icon={Users} 
+        onDownload={() => handleDownload(studentsRef, 'data_siswa.pdf')}
+        onBack={onBack} 
+        onAdd={() => handleOpenModal()} 
+      />
+      <div ref={studentsRef} className="bg-white p-6 rounded-lg shadow-md print-area">
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead className="bg-gray-100">
+              <tr>
+                {['NISN', 'Nama Lengkap', 'L/P', 'TTL', 'Orang Tua', 'Alamat', 'Aksi'].map(header => (
+                <th key={header} className="text-left py-3 px-4 font-semibold text-sm text-gray-600 uppercase">{header}</th>))}
+              </tr>
+            </thead>
+            <tbody className="text-gray-700">
+              {students.map(student => (
+                <tr key={student.id} className="border-b border-gray-200 hover:bg-gray-50">
+                  <td className="py-3 px-4">{student.nisn}</td>
+                  <td className="py-3 px-4 font-semibold text-blue-700">{student.name}</td>
+                  <td className="py-3 px-4">{student.gender.slice(0, 1)}</td>
+                  <td className="py-3 px-4">{`${student.birthPlace}, ${new Date(student.birthDate).toLocaleDateString('id-ID')}`}</td>
+                  <td className="py-3 px-4">{student.parent}</td>
+                  <td className="py-3 px-4">{student.address}</td>
+                  <td className="py-3 px-4">
+                    <div className="flex gap-3">
+                      <button onClick={() => handleOpenModal(student)} className="text-yellow-500 hover:text-yellow-700"><Edit size={18}/></button>
+                      <button onClick={() => setStudentToDelete(student)} className="text-red-500 hover:text-red-700"><Trash2 size={18}/></button>
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingStudent ? 'Ubah Data Siswa' : 'Tambah Data Siswa'}>
+        <form onSubmit={handleSaveStudent}>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input name="nisn" placeholder="NISN" defaultValue={editingStudent?.nisn} className="p-2 border rounded" required />
+            <input name="name" placeholder="Nama Lengkap" defaultValue={editingStudent?.name} className="p-2 border rounded" required />
+            <select name="gender" defaultValue={editingStudent?.gender || ''} className="p-2 border rounded" required>
+                <option value="">Pilih Jenis Kelamin</option>
+                <option value="Laki-laki">Laki-laki</option>
+                <option value="Perempuan">Perempuan</option>
+            </select>
+            <input name="birthPlace" placeholder="Tempat Lahir" defaultValue={editingStudent?.birthPlace} className="p-2 border rounded" />
+            <input name="birthDate" placeholder="Tanggal Lahir" type="date" defaultValue={editingStudent?.birthDate} className="p-2 border rounded" />
+            <input name="parent" placeholder="Nama Orang Tua" defaultValue={editingStudent?.parent} className="p-2 border rounded" />
+            <textarea name="address" placeholder="Alamat" defaultValue={editingStudent?.address} className="p-2 border rounded md:col-span-2" />
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <button type="button" onClick={handleCloseModal} className="py-2 px-4 bg-gray-200 rounded-lg">Batal</button>
+            <button type="submit" className="py-2 px-4 bg-blue-500 text-white rounded-lg">Simpan</button>
+          </div>
+        </form>
+      </Modal>
+      <Modal isOpen={!!studentToDelete} onClose={() => setStudentToDelete(null)} title="Konfirmasi Hapus">
+        <p>Apakah Anda yakin ingin menghapus data siswa <strong>{studentToDelete?.name}</strong>?</p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button type="button" onClick={() => setStudentToDelete(null)} className="py-2 px-4 bg-gray-200 rounded-lg">Batal</button>
+          <button type="button" onClick={confirmDelete} className="py-2 px-4 bg-red-500 text-white rounded-lg">Ya, Hapus</button>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+
+// GenericCrudPage component now receives items and setItems from App
+const GenericCrudPage = ({ title, icon, onBack, itemFields, items, setItems, itemName, itemTitleField, showMessage, handleDownload, renderItemActions }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState(null);
+  const [itemToDelete, setItemToDelete] = useState(null);
+  const tableRef = useRef(null);
+
+
+  const handleOpenModal = (item = null) => {
+    setEditingItem(item);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingItem(null);
+  };
+
+  const handleSave = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const itemData = Object.fromEntries(formData.entries());
+
+    if (editingItem) {
+      setItems(items.map(i => i.id === editingItem.id ? { ...i, ...itemData, id: i.id } : i));
+    } else {
+      setItems([...items, { ...itemData, id: Date.now() }]);
+    }
+    handleCloseModal();
+  };
+
+  const handleDelete = () => {
+    if (itemToDelete) {
+      setItems(items.filter(i => i.id !== itemToDelete.id));
+      setItemToDelete(null);
+    }
+  };
+
+
+  return (
+    <div>
+      {/* Conditionally show global download button in header */}
+      <Header 
+        title={title} 
+        icon={icon} 
+        onBack={onBack} 
+        onAdd={() => handleOpenModal()} 
+        onDownload={() => handleDownload(tableRef, `${title.toLowerCase().replace(/\s/g, '_')}.pdf`)} 
+        showGlobalDownload={!renderItemActions} /* Hide global download if renderItemActions is provided */
+      />
+      <div ref={tableRef} className="bg-white p-6 rounded-lg shadow-md print-area">
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead className="bg-gray-100">
+              <tr>
+                {itemFields.map(field => <th key={field.key} className="text-left py-3 px-4 font-semibold text-sm uppercase">{field.label}</th>)}
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {items.length === 0 ? (
+                <tr>
+                  <td colSpan={itemFields.length + 1} className="py-3 px-4 text-center text-gray-500">Tidak ada data.</td>
+                </tr>
+              ) : (
+                items.map(item => (
+                  <tr key={item.id} className="border-b hover:bg-gray-50">
+                    {itemFields.map(field => (
+                      <td key={field.key} className="py-3 px-4">
+                        {field.type === 'date' ? new Date(item[field.key]).toLocaleDateString('id-ID') : item[field.key]}
+                      </td>
+                    ))}
+                    <td className="py-3 px-4">
+                      <div className="flex gap-3">
+                        {renderItemActions && renderItemActions(item)}
+                        <button onClick={() => handleOpenModal(item)} className="text-yellow-500 hover:text-yellow-700"><Edit size={18}/></button>
+                        <button onClick={() => setItemToDelete(item)} className="text-red-500 hover:text-red-700"><Trash2 size={18}/></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={`${editingItem ? 'Ubah' : 'Tambah'} ${itemName}`}>
+        <form onSubmit={handleSave}>
+          <div className="space-y-4">
+            {itemFields.map(field => (
+              <input 
+                key={field.key} 
+                name={field.key} 
+                placeholder={field.label} 
+                defaultValue={editingItem?.[field.key]} 
+                className="w-full p-2 border rounded" 
+                type={field.type || 'text'}
+                required={field.required}
+              />
+            ))}
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <button type="button" onClick={handleCloseModal} className="py-2 px-4 bg-gray-200 rounded-lg">Batal</button>
+            <button type="submit" className="py-2 px-4 bg-blue-500 text-white rounded-lg">Simpan</button>
+          </div>
+        </form>
+      </Modal>
+      <Modal isOpen={!!itemToDelete} onClose={() => setItemToDelete(null)} title="Konfirmasi Hapus">
+        <p>Apakah Anda yakin ingin menghapus <strong>{itemToDelete?.[itemTitleField]}</strong>?</p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button type="button" onClick={() => setItemToDelete(null)} className="py-2 px-4 bg-gray-200 rounded-lg">Batal</button>
+          <button type="button" onClick={handleDelete} className="py-2 px-4 bg-red-500 text-white rounded-lg">Ya, Hapus</button>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+// DaftarHadir component extended with Recap features
+const DaftarHadir = ({ onBack, showMessage, handleDownload, daftarHadir, setDaftarHadir, students }) => {
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [editingAttendance, setEditingAttendance] = useState(null);
+  const [attendanceToDelete, setAttendanceToDelete] = useState(null);
+  const attendanceRef = useRef(null);
+  const dailyRecapRef = useRef(null);
+  const monthlyRecapRef = useRef(null);
+  const semesterRecapRef = useRef(null);
+
+  // States for recaps, initialized as empty arrays
+  const [dailyRecap, setDailyRecap] = useState([]);
+  const [monthlyRecap, setMonthlyRecap] = useState([]);
+  const [semesterRecap, setSemesterRecap] = useState([]);
+
+  // Function to calculate daily recap
+  const calculateDailyRecap = useCallback((attendanceData, allStudentNames) => {
+    const recap = {};
+    attendanceData.forEach(entry => {
+      const date = entry.date;
+      if (!recap[date]) {
+        recap[date] = {
+          Hadir: 0,
+          Alpha: 0,
+          Izin: 0,
+          Sakit: 0,
+          Details: {} 
+        };
+      }
+      recap[date][entry.status]++;
+      recap[date].Details[entry.studentName] = entry.status;
+    });
+
+    const finalRecap = Object.entries(recap).map(([date, data]) => {
+        const uniqueStudentsOnThisDay = new Set(Object.keys(data.Details)).size;
+        return [date, { ...data, TotalSiswa: uniqueStudentsOnThisDay }];
+    });
+
+
+    return finalRecap.sort((a,b) => a[0].localeCompare(b[0])); // Sort by date
+  }, []);
+
+  // Function to calculate monthly recap
+  const calculateMonthlyRecap = useCallback((attendanceData, allStudentNames) => {
+    const recap = {};
+    attendanceData.forEach(entry => {
+      const monthYear = entry.date.substring(0, 7); //YYYY-MM
+      const studentName = entry.studentName;
+
+      if (!recap[monthYear]) {
+        recap[monthYear] = {};
+      }
+      
+      if (!recap[monthYear][studentName]) {
+        recap[monthYear][studentName] = { Hadir: 0, Alpha: 0, Izin: 0, Sakit: 0 };
+      }
+      recap[monthYear][studentName][entry.status]++;
+    });
+    return Object.entries(recap).sort((a,b) => a[0].localeCompare(b[0])); // Sort by month-year
+  }, []);
+
+  // Function to calculate semester recap
+  const calculateSemesterRecap = useCallback((attendanceData, allStudentNames) => {
+    const recap = {};
+
+    attendanceData.forEach(entry => {
+      const year = parseInt(entry.date.substring(0, 4));
+      const month = parseInt(entry.date.substring(5, 7));
+      const studentName = entry.studentName;
+
+      let semesterKey = '';
+      // Semester 1 (Juli - Desember)
+      if (month >= 7 && month <= 12) { 
+        semesterKey = `Semester 1 (${year} Juli - Desember)`;
+      } 
+      // Semester 2 (Januari - Juni) of the same academic year (next calendar year)
+      else if (month >= 1 && month <= 6) {
+        semesterKey = `Semester 2 (${year} Jan - Juni)`;
+      }
+
+      if (semesterKey) { // Only process if a valid semester key is found
+        if (!recap[semesterKey]) {
+          recap[semesterKey] = {};
+        }
+        if (!recap[semesterKey][studentName]) {
+          recap[semesterKey][studentName] = { Hadir: 0, Alpha: 0, Izin: 0, Sakit: 0 };
+        }
+        recap[semesterKey][studentName][entry.status]++;
+      }
+    });
+    return Object.entries(recap).sort((a,b) => a[0].localeCompare(b[0])); // Sort by semester key
+  }, []);
+
+  // Recalculate recaps whenever daftarHadir changes
+  useEffect(() => {
+    // Collect all unique student names from the attendance data for comprehensive recaps
+    const allStudentNamesInAttendance = [...new Set(daftarHadir.map(entry => entry.studentName))];
+    
+    setDailyRecap(calculateDailyRecap(daftarHadir, allStudentNamesInAttendance));
+    setMonthlyRecap(calculateMonthlyRecap(daftarHadir, allStudentNamesInAttendance));
+    setSemesterRecap(calculateSemesterRecap(daftarHadir, allStudentNamesInAttendance));
+  }, [daftarHadir, calculateDailyRecap, calculateMonthlyRecap, calculateSemesterRecap]); // Removed 'students' as a dependency as names are now derived from daftarHadir
+
+  const handleOpenModal = (attendance = null) => {
+    setEditingAttendance(attendance);
+    setIsModalOpen(true);
+  };
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingAttendance(null);
+  };
+  const handleSaveAttendance = (e) => {
+    e.preventDefault();
+    const formData = new FormData(e.target);
+    const attendanceData = {
+      date: formData.get('date'),
+      studentName: formData.get('studentName'), // Direct input from text field
+      status: formData.get('status')
+    };
+    if (editingAttendance) {
+      setDaftarHadir(daftarHadir.map(a => a.id === editingAttendance.id ? { ...a, ...attendanceData, id: a.id } : a));
+    } else {
+      setDaftarHadir([...daftarHadir, { ...attendanceData, id: Date.now() }]);
+    }
+    handleCloseModal();
+  };
+  const confirmDelete = () => {
+    if (attendanceToDelete) {
+      setDaftarHadir(daftarHadir.filter(a => a.id !== attendanceToDelete.id));
+      setAttendanceToDelete(null);
+    }
+  };
+
+  const statusOptions = ['Hadir', 'Alpha', 'Izin', 'Sakit'];
+
+  return (
+    <div>
+      <Header 
+        title="Daftar Hadir" 
+        icon={CheckSquare} 
+        onDownload={() => handleDownload(attendanceRef, 'daftar_hadir.pdf')}
+        onBack={onBack} 
+        onAdd={() => handleOpenModal()} 
+      />
+      <div ref={attendanceRef} className="bg-white p-6 rounded-lg shadow-md mb-6 print-area">
+        <h2 className="text-xl font-bold mb-4 text-gray-800">Detail Kehadiran</h2>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Tanggal</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Nama Siswa</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Status</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              {daftarHadir.length === 0 ? (
+                <tr>
+                  <td colSpan="4" className="py-3 px-4 text-center text-gray-500">Tidak ada data daftar hadir.</td>
+                </tr>
+              ) : (
+                daftarHadir.map(item => (
+                  <tr key={item.id} className="border-b hover:bg-gray-50">
+                    <td className="py-3 px-4">{new Date(item.date).toLocaleDateString('id-ID')}</td>
+                    <td className="py-3 px-4 font-semibold">{item.studentName}</td>
+                    <td className="py-3 px-4">{item.status}</td>
+                    <td className="py-3 px-4">
+                      <div className="flex gap-3">
+                        <button onClick={() => handleOpenModal(item)} className="text-yellow-500 hover:text-yellow-700"><Edit size={18}/></button>
+                        <button onClick={() => setAttendanceToDelete(item)} className="text-red-500 hover:text-red-700"><Trash2 size={18}/></button>
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Rekap Harian */}
+      <div ref={dailyRecapRef} className="bg-white p-6 rounded-lg shadow-md mb-6 print-area">
+        <h2 className="text-xl font-bold mb-4 text-gray-800">Rekap Harian</h2>
+        <button onClick={() => handleDownload(dailyRecapRef, 'rekap_harian.pdf')} className="mb-4 flex items-center bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm">
+          <Download size={18} className="mr-2" /> Unduh Rekap Harian
+        </button>
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white border border-gray-200">
+            <thead className="bg-gray-100">
+              <tr>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Tanggal</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Hadir</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Alpha</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Izin</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Sakit</th>
+                <th className="text-left py-3 px-4 font-semibold text-sm uppercase">Total Siswa Hadir</th> {/* Updated label */}
+              </tr>
+            </thead>
+            <tbody>
+              {dailyRecap.length === 0 ? (
+                <tr>
+                  <td colSpan="6" className="py-3 px-4 text-center text-gray-500">Tidak ada rekap harian.</td>
+                </tr>
+              ) : (
+                dailyRecap.map(([date, data]) => (
+                  <tr key={date} className="border-b hover:bg-gray-50">
+                    <td className="py-3 px-4">{new Date(date).toLocaleDateString('id-ID')}</td>
+                    <td className="py-3 px-4">{data.Hadir}</td>
+                    <td className="py-3 px-4">{data.Alpha}</td>
+                    <td className="py-3 px-4">{data.Izin}</td>
+                    <td className="py-3 px-4">{data.Sakit}</td>
+                    <td className="py-3 px-4">{data.TotalSiswa}</td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      {/* Rekap Bulanan */}
+      <div ref={monthlyRecapRef} className="bg-white p-6 rounded-lg shadow-md mb-6 print-area">
+        <h2 className="text-xl font-bold mb-4 text-gray-800">Rekap Bulanan (Per Siswa)</h2>
+        <button onClick={() => handleDownload(monthlyRecapRef, 'rekap_bulanan.pdf')} className="mb-4 flex items-center bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm">
+          <Download size={18} className="mr-2" /> Unduh Rekap Bulanan
+        </button>
+        <div className="overflow-x-auto">
+          {monthlyRecap.length === 0 ? (
+            <p className="py-3 px-4 text-center text-gray-500">Tidak ada rekap bulanan.</p>
+          ) : (
+            monthlyRecap.map(([monthYear, studentsData]) => (
+              <div key={monthYear} className="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-700 mb-3">{new Date(monthYear).toLocaleString('id-ID', { month: 'long', year: 'numeric' })}</h3>
+                <table className="min-w-full bg-white border border-gray-200">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Nama Siswa</th>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Hadir</th>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Alpha</th>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Izin</th>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Sakit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(studentsData).map(([studentName, statusCounts]) => (
+                      <tr key={studentName} className="border-b hover:bg-gray-100">
+                        <td className="py-2 px-3 text-sm font-semibold">{studentName}</td>
+                        <td className="py-2 px-3 text-sm">{statusCounts.Hadir || 0}</td>
+                        <td className="py-2 px-3 text-sm">{statusCounts.Alpha || 0}</td>
+                        <td className="py-2 px-3 text-sm">{statusCounts.Izin || 0}</td>
+                        <td className="py-2 px-3 text-sm">{statusCounts.Sakit || 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+      {/* Rekap Semester */}
+      <div ref={semesterRecapRef} className="bg-white p-6 rounded-lg shadow-md print-area">
+        <h2 className="text-xl font-bold mb-4 text-gray-800">Rekap Semester (Per Siswa)</h2>
+        <button onClick={() => handleDownload(semesterRecapRef, 'rekap_semester.pdf')} className="mb-4 flex items-center bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm">
+          <Download size={18} className="mr-2" /> Unduh Rekap Semester
+        </button>
+        <div className="overflow-x-auto">
+          {semesterRecap.length === 0 ? (
+            <p className="py-3 px-4 text-center text-gray-500">Tidak ada rekap semester.</p>
+          ) : (
+            semesterRecap.map(([semesterKey, studentsData]) => (
+              <div key={semesterKey} className="mb-6 border border-gray-200 rounded-lg p-4 bg-gray-50">
+                <h3 className="font-bold text-lg text-gray-700 mb-3">{semesterKey}</h3>
+                <table className="min-w-full bg-white border border-gray-200">
+                  <thead className="bg-gray-100">
+                    <tr>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Nama Siswa</th>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Hadir</th>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Alpha</th>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Izin</th>
+                      <th className="text-left py-2 px-3 font-semibold text-xs uppercase">Sakit</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {Object.entries(studentsData).map(([studentName, statusCounts]) => (
+                      <tr key={studentName} className="border-b hover:bg-gray-100">
+                        <td className="py-2 px-3 text-sm font-semibold">{studentName}</td>
+                        <td className="py-2 px-3 text-sm">{statusCounts.Hadir || 0}</td>
+                        <td className="py-2 px-3 text-sm">{statusCounts.Alpha || 0}</td>
+                        <td className="py-2 px-3 text-sm">{statusCounts.Izin || 0}</td>
+                        <td className="py-2 px-3 text-sm">{statusCounts.Sakit || 0}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            ))
+          )}
+        </div>
+      </div>
+
+
+      <Modal isOpen={isModalOpen} onClose={handleCloseModal} title={editingAttendance ? 'Ubah Kehadiran' : 'Tambah Kehadiran'}>
+        <form onSubmit={handleSaveAttendance}>
+          <div className="space-y-4">
+            <input name="date" type="date" placeholder="Tanggal" defaultValue={editingAttendance?.date} className="w-full p-2 border rounded" required />
+            {/* Changed from select to input type="text" */}
+            <input name="studentName" type="text" placeholder="Masukkan Nama Siswa" defaultValue={editingAttendance?.studentName} className="w-full p-2 border rounded" required />
+            <select name="status" defaultValue={editingAttendance?.status || ''} className="w-full p-2 border rounded" required>
+                <option value="">Pilih Status</option>
+                {statusOptions.map(status => (
+                  <option key={status} value={status}>{status}</option>
+                ))}
+            </select>
+          </div>
+          <div className="mt-6 flex justify-end gap-3">
+            <button type="button" onClick={handleCloseModal} className="py-2 px-4 bg-gray-200 rounded-lg">Batal</button>
+            <button type="submit" className="py-2 px-4 bg-blue-500 text-white rounded-lg">Simpan</button>
+          </div>
+        </form>
+      </Modal>
+      <Modal isOpen={!!attendanceToDelete} onClose={() => setAttendanceToDelete(null)} title="Konfirmasi Hapus">
+        <p>Apakah Anda yakin ingin menghapus data kehadiran <strong>{attendanceToDelete?.studentName}</strong> pada tanggal <strong>{new Date(attendanceToDelete?.date).toLocaleDateString('id-ID')}</strong>?</p>
+        <div className="mt-6 flex justify-end gap-3">
+          <button type="button" onClick={() => setAttendanceToDelete(null)} className="py-2 px-4 bg-gray-200 rounded-lg">Batal</button>
+          <button type="button" onClick={confirmDelete} className="py-2 px-4 bg-red-500 text-white rounded-lg">Ya, Hapus</button>
+        </div>
+      </Modal>
+    </div>
+  );
+};
+
+
+const Dashboard = ({ onMenuClick, menuItems }) => (
+  <div>
+    <div className="mb-8">
+      <h1 className="text-4xl font-bold text-gray-800">Selamat Datang, Guru!</h1>
+      <p className="text-lg text-gray-600 mt-2">Pilih menu administrasi untuk memulai.</p>
+    </div>
+    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+      {menuItems.map((item) => (
+        <div key={item.id} onClick={() => onMenuClick(item.id)} className={`h-48 p-5 rounded-xl shadow-lg cursor-pointer transition-all duration-300 transform hover:-translate-y-2 ${item.color} text-white flex flex-col justify-between`}>
+          <div className="bg-white bg-opacity-20 p-3 rounded-full w-max"> <item.icon size={28} /> </div>
+          <div> <h3 className="text-xl font-bold">{item.name}</h3> </div>
+        </div>
+      ))}
+    </div>
+  </div>
+);
+
+export default function App() {
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
+  const [activeMenu, setActiveMenu] = useState('Dashboard');
+  const [guruProfile, setGuruProfile] = useState(initialGuruProfile);
+
+  // Centralized state for all data tables
+  const [students, setStudents] = useState(initialStudentData);
+  const [schedule, setSchedule] = useState(initialSchedule);
+  const [daftarHadir, setDaftarHadir] = useState(initialDaftarHadir);
+  const [programSemesterTahunan, setProgramSemesterTahunan] = useState(initialProgramSemesterTahunan);
+  const [kalenderPendidikan, setKalenderPendidikan] = useState(initialKalenderPendidikan);
+  const [asesmen, setAsesmen] = useState(initialAsesmen);
+  const [karyaInovatif, setKaryaInovatif] = useState(initialKaryaInovatif);
+  const [programKerjaGuru, setProgramKerjaGuru] = useState(initialProgramKerjaGuru);
+  const [modulAjar, setModulAjar] = useState(initialModulAjar);
+  const [riwayatPelatihan, setRiwayatPelatihan] = useState(initialRiwayatPelatihan);
+  const [daftarNilai, setDaftarNilai] = useState(initialDaftarNilai);
+  
+  const [messageModal, setMessageModal] = useState({ isOpen: false, title: '', message: '' });
+
+  const showMessage = (message, title = 'Informasi') => {
+    setMessageModal({ isOpen: true, title, message });
+  };
+
+  const closeMessageModal = () => {
+    setMessageModal({ isOpen: false, title: '', message: '' });
+  };
+
+  // Generic download handler for PDF
+  const handleDownload = async (contentRefOrElement, filename) => {
+    if (!window.html2canvas || !window.jspdf) {
+      showMessage('Pustaka HTML2Canvas atau jsPDF belum dimuat. Mohon tunggu sebentar atau coba lagi.', 'Error Unduhan');
+      return;
+    }
+
+    let elementToCapture = contentRefOrElement; 
+    if (contentRefOrElement && contentRefOrElement.current) {
+        elementToCapture = contentRefOrElement.current;
+    }
+
+    if (!elementToCapture) {
+      showMessage('Konten untuk diunduh tidak ditemukan atau belum siap. Silakan coba lagi.', 'Error Unduhan');
+      console.error("Download failed: Element to capture is null or undefined.", contentRefOrElement);
+      return;
+    }
+
+    showMessage(`Mempersiapkan unduhan ${filename}...`, 'Unduhan Dimulai');
+
+    try {
+        const canvas = await window.html2canvas(elementToCapture, {
+            scale: 2, // Improve quality
+            useCORS: true, // Enable cross-origin image loading
+            logging: false // Disable logging for cleaner console
+        });
+
+        const imgData = canvas.toDataURL('image/png');
+        const pdf = new window.jspdf.jsPDF({
+            orientation: 'p',
+            unit: 'mm',
+            format: 'a4'
+        });
+
+        const imgWidth = 210; // A4 width in mm
+        const pageHeight = 297; // A4 height in mm
+        const imgHeight = canvas.height * imgWidth / canvas.width;
+        let heightLeft = imgHeight;
+        let position = 0;
+
+        pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+        heightLeft -= pageHeight;
+
+        while (heightLeft >= 0) {
+            position = heightLeft - pageHeight;
+            pdf.addPage();
+            pdf.addImage(imgData, 'PNG', 0, position, imgWidth, imgHeight);
+            heightLeft -= pageHeight;
+        }
+
+        pdf.save(filename);
+        showMessage(`${filename} berhasil diunduh!`, 'Unduhan Selesai');
+
+    } /*catch (error) { // Error logging removed as it was part of the original error feedback
+        console.error("Error generating PDF:", error);
+        showMessage(`Gagal mengunduh ${filename}. Pastikan semua konten visual dimuat dengan benar dan tidak ada masalah dengan pustaka.`, 'Error Unduhan');
+    }*/ // Removed catch block to not interfere with user experience directly. Debugging info is still in console.
+    catch (error) {
+        console.error("Error generating PDF:", error);
+        showMessage(`Gagal mengunduh ${filename}. Pastikan semua konten visual dimuat dengan benar dan tidak ada masalah dengan pustaka. Ini mungkin terjadi jika dokumen Google Docs tidak diatur untuk unduhan publik.`, 'Error Unduhan');
+    }
+  };
+
+
+  const menuItems = [
+    { name: 'Profil Guru', id: 'Profil Guru', icon: UserCircle, color: 'bg-gradient-to-br from-gray-700 to-gray-800' },
+    { name: 'Jadwal', id: 'Jadwal Mengajar', icon: Calendar, color: 'bg-gradient-to-br from-blue-500 to-blue-600' },
+    { name: 'Siswa', id: 'Data Siswa', icon: Users, color: 'bg-gradient-to-br from-green-500 to-green-600' },
+    { name: 'Kehadiran', id: 'Daftar Hadir', icon: CheckSquare, color: 'bg-gradient-to-br from-yellow-500 to-yellow-600' },
+    { name: 'Modul Ajar', id: 'Modul Ajar', icon: Book, color: 'bg-gradient-to-br from-purple-500 to-purple-600' },
+    { name: 'Program', id: 'Program Semester & Tahunan', icon: BarChart2, color: 'bg-gradient-to-br from-pink-500 to-pink-600' },
+    { name: 'Kalender', id: 'Kalender Pendidikan', icon: Award, color: 'bg-gradient-to-br from-red-500 to-red-600' },
+    { name: 'Asesmen', id: 'Asesmen', icon: ClipboardList, color: 'bg-gradient-to-br from-indigo-500 to-indigo-600' },
+    { name: 'Karya', id: 'Karya Inovatif', icon: BrainCircuit, color: 'bg-gradient-to-br from-teal-500 to-teal-600' },
+    { name: 'Pelatihan', id: 'Riwayat Pelatihan', icon: GraduationCap, color: 'bg-gradient-to-br from-cyan-500 to-cyan-600' },
+    { name: 'Daftar Nilai', id: 'Daftar Nilai', icon: BarChart2, color: 'bg-gradient-to-br from-green-700 to-emerald-800' },
+    { name: 'Proker', id: 'Program Kerja Guru', icon: Target, color: 'bg-gradient-to-br from-orange-500 to-orange-600' },
+  ];
+
+  const handleGoBack = () => setActiveMenu('Dashboard');
+
+  // New function to render actions specifically for Modul Ajar
+  const renderModulAjarActions = (item) => (
+    <>
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+
+          const googleDocsRegex = /docs\.google\.com\/(document|spreadsheets|presentation)\/d\/([a-zA-Z0-9_-]+)(?:\/edit)?(?:.*)/;
+          const match = item.link.match(googleDocsRegex);
+
+          if (match && match[2]) {
+            const docType = match[1];
+            const docId = match[2];
+            const exportUrl = `https://docs.google.com/${docType}/d/${docId}/export?format=pdf`;
+            window.open(exportUrl, '_blank');
+            showMessage(`Mencoba mengunduh dokumen asli: ${item.title.replace(/\s/g, '_')}.pdf. Dokumen akan dibuka di tab baru.`, 'Informasi Unduhan');
+          } else {
+            const tempDiv = document.createElement('div');
+            tempDiv.style.padding = '20mm';
+            tempDiv.innerHTML = `
+              <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">${item.title}</h2>
+              <p style="font-size: 16px;">Tautan: <a href="${item.link}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">${item.link}</a></p>
+              <p style="font-size: 14px; color: gray; margin-top: 15px;">(Tidak dapat mengunduh dokumen asli dari tautan ini. Mengunduh informasi yang ditampilkan.)</p>
+            `;
+            document.body.appendChild(tempDiv);
+            
+            handleDownload(tempDiv, `${item.title.replace(/\s/g, '_')}_info.pdf`).finally(() => {
+              document.body.removeChild(tempDiv);
+            });
+          }
+        }}
+        className="text-blue-500 hover:text-blue-700"
+        title="Unduh Dokumen Asli PDF"
+      >
+        <Download size={18}/>
+      </button>
+    </>
+  );
+
+  const renderDaftarNilaiActions = (item) => (
+    <>
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          window.open(item.googleSheetLink, '_blank');
+          showMessage(`Membuka Google Sheet untuk ${item.subjectName} di tab baru.`, 'Membuka Link');
+        }}
+        className="text-blue-500 hover:text-blue-700"
+        title="Buka Google Sheet"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+      </button>
+    </>
+  );
+
+  const renderAsesmenActions = (item) => (
+    <>
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+          window.open(item.link, '_blank');
+          showMessage(`Membuka tautan asesmen untuk ${item.assessmentName} di tab baru.`, 'Membuka Link');
+        }}
+        className="text-blue-500 hover:text-blue-700"
+        title="Buka Tautan Asesmen"
+      >
+        <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="lucide lucide-external-link"><path d="M15 3h6v6"/><path d="M10 14 21 3"/><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/></svg>
+      </button>
+      <button 
+        onClick={(e) => {
+          e.stopPropagation();
+          e.preventDefault();
+
+          if (!window.jspdf || !window.html2canvas) {
+            showMessage('Pustaka HTML2Canvas atau jsPDF belum dimuat. Mohon tunggu sebentar atau coba lagi.', 'Error Unduhan');
+            return;
+          }
+
+          const tempDiv = document.createElement('div');
+          tempDiv.style.padding = '20mm';
+          tempDiv.innerHTML = `
+            <h2 style="font-size: 24px; font-weight: bold; margin-bottom: 10px;">Asesmen: ${item.assessmentName}</h2>
+            <p style="font-size: 16px;">Tanggal: ${new Date(item.date).toLocaleDateString('id-ID')}</p>
+            <p style="font-size: 16px;">Mata Pelajaran: ${item.subject}</p>
+            <p style="font-size: 16px;">Tautan: <a href="${item.link}" target="_blank" rel="noopener noreferrer" style="color: #2563eb; text-decoration: underline;">${item.link}</a></p>
+          `;
+          document.body.appendChild(tempDiv);
+          
+          handleDownload(tempDiv, `${item.assessmentName.replace(/\s/g, '_')}.pdf`).finally(() => {
+            document.body.removeChild(tempDiv);
+          });
+        }}
+        className="text-blue-500 hover:text-blue-700"
+        title="Unduh Info Asesmen PDF"
+      >
+        <Download size={18}/>
+      </button>
+    </>
+  );
+
+  
+  const renderContent = () => {
+    switch(activeMenu) {
+      case 'Dashboard': return <Dashboard onMenuClick={setActiveMenu} menuItems={menuItems} />;
+      case 'Profil Guru': return <ProfilGuru onBack={handleGoBack} profile={guruProfile} setProfile={setGuruProfile} showMessage={showMessage} handleDownload={handleDownload} />;
+      case 'Jadwal Mengajar': return <JadwalMengajar onBack={handleGoBack} schedule={schedule} setSchedule={setSchedule} showMessage={showMessage} handleDownload={handleDownload} />;
+      case 'Data Siswa': return <DataSiswa onBack={handleGoBack} students={students} setStudents={setStudents} showMessage={showMessage} handleDownload={handleDownload} />;
+      case 'Modul Ajar': 
+        return <GenericCrudPage 
+          title="Modul Ajar" 
+          icon={Book} 
+          onBack={handleGoBack} 
+          itemName="Modul" 
+          itemTitleField="title" 
+          items={modulAjar}
+          setItems={setModulAjar}
+          itemFields={[{key: 'title', label: 'Judul Modul', required: true}, {key: 'link', label: 'Tautan Google Docs', required: true}]}
+          showMessage={showMessage}
+          handleDownload={handleDownload}
+          renderItemActions={renderModulAjarActions}
+        />;
+      case 'Riwayat Pelatihan': 
+        return <GenericCrudPage 
+          title="Riwayat Pelatihan" 
+          icon={GraduationCap} 
+          onBack={handleGoBack} 
+          itemName="Pelatihan" 
+          itemTitleField="topic" 
+          items={riwayatPelatihan}
+          setItems={setRiwayatPelatihan}
+          itemFields={[{key: 'topic', label: 'Topik', required: true}, {key: 'organizer', label: 'Penyelenggara', required: true}, {key: 'date', label: 'Tanggal', type: 'date', required: true}]}
+          showMessage={showMessage}
+          handleDownload={handleDownload} 
+        />;
+      case 'Daftar Nilai': 
+        return <GenericCrudPage 
+          title="Daftar Nilai" 
+          icon={BarChart2}
+          onBack={handleGoBack} 
+          itemName="Nilai Mata Pelajaran" 
+          itemTitleField="subjectName" 
+          items={daftarNilai} 
+          setItems={setDaftarNilai} 
+          itemFields={[
+            {key: 'subjectName', label: 'Mata Pelajaran', required: true}, 
+            {key: 'googleSheetLink', label: 'Tautan Google Sheet', required: true}
+          ]}
+          showMessage={showMessage}
+          handleDownload={handleDownload} 
+          renderItemActions={renderDaftarNilaiActions}
+        />;
+      case 'Daftar Hadir':
+        return <DaftarHadir
+          onBack={handleGoBack}
+          daftarHadir={daftarHadir}
+          setDaftarHadir={setDaftarHadir}
+          students={students} // Pass students data for recap calculation
+          showMessage={showMessage}
+          handleDownload={handleDownload}
+        />;
+      case 'Program Semester & Tahunan':
+        return <GenericCrudPage
+          title="Program Semester & Tahunan"
+          icon={BarChart2}
+          onBack={handleGoBack}
+          itemName="Program"
+          itemTitleField="programName"
+          items={programSemesterTahunan}
+          setItems={setProgramSemesterTahunan}
+          itemFields={[
+            { key: 'programName', label: 'Nama Program', required: true },
+            { key: 'description', label: 'Deskripsi' },
+            { key: 'year', label: 'Tahun', required: true }
+          ]}
+          showMessage={showMessage}
+          handleDownload={handleDownload}
+        />;
+      case 'Kalender Pendidikan':
+        return <GenericCrudPage
+          title="Kalender Pendidikan"
+          icon={Award}
+          onBack={handleGoBack}
+          itemName="Acara"
+          itemTitleField="eventName"
+          items={kalenderPendidikan}
+          setItems={setKalenderPendidikan}
+          itemFields={[
+            { key: 'eventName', label: 'Nama Acara', required: true },
+            { key: 'date', label: 'Tanggal', type: 'date', required: true },
+            { key: 'notes', label: 'Catatan' }
+          ]}
+          showMessage={showMessage}
+          handleDownload={handleDownload}
+        />;
+      case 'Asesmen':
+        return <GenericCrudPage
+          title="Asesmen"
+          icon={ClipboardList}
+          onBack={handleGoBack}
+          itemName="Asesmen"
+          itemTitleField="assessmentName"
+          items={asesmen}
+          setItems={setAsesmen}
+          itemFields={[
+            { key: 'assessmentName', label: 'Nama Asesmen', required: true },
+            { key: 'date', label: 'Tanggal', type: 'date', required: true },
+            { key: 'subject', label: 'Mata Pelajaran', required: true },
+            { key: 'link', label: 'Tautan Asesmen', type: 'url', required: false }
+          ]}
+          showMessage={showMessage}
+          handleDownload={handleDownload}
+          renderItemActions={renderAsesmenActions}
+        />;
+      case 'Karya Inovatif':
+        return <GenericCrudPage
+          title="Karya Inovatif"
+          icon={BrainCircuit}
+          onBack={handleGoBack}
+          itemName="Karya"
+          itemTitleField="workTitle"
+          items={karyaInovatif}
+          setItems={setKaryaInovatif}
+          itemFields={[
+            { key: 'workTitle', label: 'Judul Karya', required: true },
+            { key: 'description', label: 'Deskripsi' },
+            { key: 'year', label: 'Tahun', required: true }
+          ]}
+          showMessage={showMessage}
+          handleDownload={handleDownload}
+        />;
+      case 'Program Kerja Guru':
+        return <GenericCrudPage
+          title="Program Kerja Guru"
+          icon={Target}
+          onBack={handleGoBack}
+          itemName="Program Kerja"
+          itemTitleField="programName"
+          items={programKerjaGuru}
+          setItems={setProgramKerjaGuru}
+          itemFields={[
+            { key: 'programName', label: 'Nama Program', required: true },
+            { key: 'description', label: 'Deskripsi' },
+            { key: 'status', label: 'Status', required: true }
+          ]}
+          showMessage={showMessage}
+          handleDownload={handleDownload}
+        />;
+      default: return <Dashboard onMenuClick={setActiveMenu} menuItems={menuItems} />;
+    }
+  };
+  
+  if (!isLoggedIn) {
+    return (
+      <div className="bg-slate-100 min-h-screen flex items-center justify-center font-sans">
+        <div className="text-center p-8 bg-white rounded-xl shadow-2xl max-w-md w-full">
+          <h1 className="text-3xl font-bold text-blue-600 mb-2">Dasbor Administrasi Guru</h1>
+          <p className="text-gray-600 mb-8">Silakan masuk untuk melanjutkan.</p>
+          <button onClick={() => setIsLoggedIn(true)} className="w-full flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white font-bold py-3 px-4 rounded-lg transition duration-300 shadow-lg hover:shadow-xl">
+            <svg className="w-6 h-6 mr-3" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 48 48"><path fill="#FFC107" d="M43.611 20.083H42V20H24v8h11.303c-1.649 4.657-6.08 8-11.303 8c-6.627 0-12-5.373-12-12s5.373-12 12-12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C12.955 4 4 12.955 4 24s8.955 20 20 20s20-8.955 20-20c0-1.341-.138-2.65-.389-3.917z"/><path fill="#FF3D00" d="M6.306 14.691l6.571 4.819C14.655 15.108 18.961 12 24 12c3.059 0 5.842 1.154 7.961 3.039l5.657-5.657C34.046 6.053 29.268 4 24 4C16.318 4 9.656 8.337 6.306 14.691z"/><path fill="#4CAF50" d="M24 44c5.166 0 9.86-1.977 13.409-5.192l-6.19-5.238C29.211 35.091 26.715 36 24 36c-5.202 0-9.619-3.317-11.283-7.946l-6.522 5.025C9.505 39.556 16.227 44 24 44z"/><path fill="#1976D2" d="M43.611 20.083H42V20H24v8h11.303c-.792 2.237-2.231 4.166-4.087 5.574l6.19 5.238C42.011 35.638 44 30.138 44 24c0-1.341-.138-2.65-.389-3.917z"/></svg>
+            Masuk
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="bg-slate-100 font-sans min-h-screen">
+      <div className="flex-1 flex flex-col">
+        <header className="bg-white/80 backdrop-blur-sm shadow-sm p-4 flex justify-between items-center sticky top-0 z-10">
+          <div className="text-xl font-bold text-blue-600">Admin KELAS 5</div>
+          <div className="flex items-center">
+            <span className="text-gray-700 mr-3 hidden sm:inline">{guruProfile.name}</span>
+            <img src={guruProfile.photo}  onError={(e) => { e.target.onerror = null; e.target.src='https://placehold.co/40x40/E0E7FF/4F46E5?text=G'; }} onClick={() => setActiveMenu('Profil Guru')} alt="Foto Profil" className="w-10 h-10 rounded-full mr-4 cursor-pointer object-cover border-2 border-blue-200" />
+            <button onClick={() => setIsLoggedIn(false)} className="text-gray-500 hover:text-red-500 transition-colors"> <LogOut size={24} /> </button>
+          </div>
+        </header>
+        <main className="p-4 sm:p-6 lg:p-8 flex-1">
+          {renderContent()}
+        </main>
+      </div>
+      {/* General Message Modal */}
+      <Modal isOpen={messageModal.isOpen} onClose={closeMessageModal} title={messageModal.title}>
+        <p>{messageModal.message}</p>
+        <div className="mt-6 flex justify-end">
+          <button onClick={closeMessageModal} className="py-2 px-4 bg-blue-500 text-white rounded-lg">Tutup</button>
+        </div>
+      </Modal>
+    </div>
+  );
+}

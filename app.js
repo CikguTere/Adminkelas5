@@ -48,6 +48,7 @@ window.addEventListener('load', async () => {
 
 
     // --- Data Mock Awal (akan digunakan jika Firestore kosong atau untuk inisialisasi pertama) ---
+    // Struktur data mock tetap sama
     let initialStudentData = [
         { id: '1', nisn: '0051234567', name: 'Budi Santoso', gender: 'Laki-laki', birthPlace: 'Jakarta', birthDate: '2013-05-10', parent: 'Ahmad Santoso', address: 'Jl. Merdeka No. 1' },
         { id: '2', nisn: '0051234568', name: 'Citra Lestari', gender: 'Perempuan', birthPlace: 'Bandung', birthDate: '2013-08-15', parent: 'Dewi Lestari', address: 'Jl. Pahlawan No. 22' },
@@ -111,15 +112,17 @@ window.addEventListener('load', async () => {
         { id: '3', assessmentName: 'Kuis Sejarah - Pahlawan Nasional', date: '2025-08-10', subject: 'IPS', link: 'https://quizizz.com/admin/quiz/61_example_history/start' },
     ];
 
-    let initialKaryaInovatif = [
-        { id: '1', workTitle: 'Media Pembelajaran Interaktif "Pecahan Asyik"', description: 'Aplikasi interaktif untuk membantu siswa memahami konsep pecahan.', year: '2024' },
-        { id: '2', workTitle: 'Modul Digital IPS Kelas 5', description: 'Modul pembelajaran IPS berbasis digital dengan video dan kuis interaktif.', year: '2023' },
-    ];
+    // --- Removed initialKaryaInovatif ---
+    // let initialKaryaInovatif = [
+    //     { id: '1', workTitle: 'Media Pembelajaran Interaktif "Pecahan Asyik"', description: 'Aplikasi interaktif untuk membantu siswa memahami konsep pecahan.', year: '2024' },
+    //     { id: '2', workTitle: 'Modul Digital IPS Kelas 5', description: 'Modul pembelajaran IPS berbasis digital dengan video dan kuis interaktif.', year: '2023' },
+    // ];
 
-    let initialProgramKerjaGuru = [
-        { id: '1', programName: 'Peningkatan Minat Baca Siswa', description: 'Mengadakan program membaca 15 menit sebelum pelajaran dimulai.', status: 'Berjalan' },
-        { id: '2', programName: 'Pembinaan Olimpiade Sains', description: 'Membimbing siswa terpilih untuk persiapan olimpiade sains.', status: 'Belum Dimulai' },
-    ];
+    // --- Removed initialProgramKerjaGuru ---
+    // let initialProgramKerjaGuru = [
+    //     { id: '1', programName: 'Peningkatan Minat Baca Siswa', description: 'Mengadakan program membaca 15 menit sebelum pelajaran dimulai.', status: 'Berjalan' },
+    //     { id: '2', programName: 'Pembinaan Olimpiade Sains', description: 'Membimbing siswa terpilih untuk persiapan olimpiade sains.', status: 'Belum Dimulai' },
+    // ];
 
     let initialModulAjar = [
         {id: '1', title: 'Modul Matematika - Pecahan', link: 'https://docs.google.com/document/d/1example/edit'},
@@ -151,8 +154,9 @@ window.addEventListener('load', async () => {
     let kalenderPendidikan = [];
     let daftarNilai = [];
     let asesmen = [];
-    let karyaInovatif = [];
-    let programKerjaGuru = [];
+    // --- Removed karyaInovatif and programKerjaGuru from state ---
+    // let karyaInovatif = [];
+    // let programKerjaGuru = [];
     let modulAjar = [];
     let riwayatPelatihan = [];
 
@@ -164,8 +168,9 @@ window.addEventListener('load', async () => {
     let kalenderPendidikanLoaded = false;
     let daftarNilaiLoaded = false;
     let asesmenLoaded = false;
-    let karyaInovatifLoaded = false;
-    let programKerjaGuruLoaded = false;
+    // --- Removed loaded flags for karyaInovatif and programKerjaGuru ---
+    // let karyaInovatifLoaded = false;
+    // let programKerjaGuruLoaded = false;
     let modulAjarLoaded = false;
     let riwayatPelatihanLoaded = false;
 
@@ -377,35 +382,37 @@ window.addEventListener('load', async () => {
         });
     }
 
-    function initializeKaryaInovatifListener() {
-        if (karyaInovatifLoaded) return;
-        karyaInovatifLoaded = true;
-        onSnapshot(getCollectionRef('innovative_works'), (snapshot) => {
-            karyaInovatif = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            if (karyaInovatif.length === 0) {
-                initialKaryaInovatif.forEach(async (item) => {
-                    await setDoc(doc(getCollectionRef('innovative_works')), item);
-                });
-                karyaInovatif = initialKaryaInovatif;
-            }
-            renderApp();
-        });
-    }
+    // --- Removed initializeKaryaInovatifListener ---
+    // function initializeKaryaInovatifListener() {
+    //     if (karyaInovatifLoaded) return;
+    //     karyaInovatifLoaded = true;
+    //     onSnapshot(getCollectionRef('innovative_works'), (snapshot) => {
+    //         karyaInovatif = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    //         if (karyaInovatif.length === 0) {
+    //             initialKaryaInovatif.forEach(async (item) => {
+    //                 await setDoc(doc(getCollectionRef('innovative_works')), item);
+    //             });
+    //             karyaInovatif = initialKaryaInovatif;
+    //         }
+    //         renderApp();
+    //     });
+    // }
 
-    function initializeProgramKerjaGuruListener() {
-        if (programKerjaGuruLoaded) return;
-        programKerjaGuruLoaded = true;
-        onSnapshot(getCollectionRef('teacher_programs'), (snapshot) => {
-            programKerjaGuru = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-            if (programKerjaGuru.length === 0) {
-                initialProgramKerjaGuru.forEach(async (item) => {
-                    await setDoc(doc(getCollectionRef('teacher_programs')), item);
-                });
-                programKerjaGuru = initialProgramKerjaGuru;
-            }
-            renderApp();
-        });
-    }
+    // --- Removed initializeProgramKerjaGuruListener ---
+    // function initializeProgramKerjaGuruListener() {
+    //     if (programKerjaGuruLoaded) return;
+    //     programKerjaGuruLoaded = true;
+    //     onSnapshot(getCollectionRef('teacher_programs'), (snapshot) => {
+    //         programKerjaGuru = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    //         if (programKerjaGuru.length === 0) {
+    //             initialProgramKerjaGuru.forEach(async (item) => {
+    //                 await setDoc(doc(getCollectionRef('teacher_programs')), item);
+    //             });
+    //             programKerjaGuru = initialProgramKerjaGuru;
+    //         }
+    //         renderApp();
+    //     });
+    // }
 
     function initializeModulAjarListener() {
         if (modulAjarLoaded) return;
@@ -460,18 +467,68 @@ window.addEventListener('load', async () => {
         renderApp();
     }
 
-    function showDataModal(title, formHtml, submitCallback) {
-        dataModal.isOpen = true;
-        dataModal.title = title;
-        dataModal.formHtml = formHtml;
-        renderApp(); // Render to update modal HTML first
+    /**
+     * Renders a generic form in the data modal.
+     * @param {string} title - The title of the modal.
+     * @param {Array<Object>} fields - An array of field definitions.
+     * Each object: { name: string, label: string, type: string, value?: string, options?: Array<Object>, required?: boolean, placeholder?: string }
+     * options: [{ value: string, text: string }] for 'select' type.
+     * @param {Function} submitCallback - Callback function when the form is submitted. Receives the form data.
+     * @param {Object} initialData - Optional initial data to pre-fill form fields.
+     */
+    function renderGenericForm(title, fields, submitCallback, initialData = {}) {
+        let formHtml = '';
+        fields.forEach(field => {
+            const value = initialData[field.name] !== undefined ? initialData[field.name] : (field.value || '');
+            const requiredAttr = field.required ? 'required' : '';
+            const placeholderAttr = field.placeholder ? `placeholder="${field.placeholder}"` : '';
 
-        dataModalSubmitButton.onclick = (e) => {
-            e.preventDefault();
-            submitCallback(dataModalFormElem); // Pass the actual form element to the callback
-        };
-        dataModalCancelButton.onclick = closeDataModal;
+            formHtml += `<div><label for="${field.name}" class="block text-gray-700 text-sm font-bold mb-1">${field.label}</label>`;
+            switch (field.type) {
+                case 'text':
+                case 'email':
+                case 'url':
+                case 'date':
+                case 'number':
+                    formHtml += `<input type="${field.type}" name="${field.name}" id="${field.name}" value="${value}" class="w-full p-2 border rounded" ${requiredAttr} ${placeholderAttr} />`;
+                    break;
+                case 'textarea':
+                    formHtml += `<textarea name="${field.name}" id="${field.name}" class="w-full p-2 border rounded" rows="${field.rows || 3}" ${requiredAttr} ${placeholderAttr}>${value}</textarea>`;
+                    break;
+                case 'select':
+                    formHtml += `<select name="${field.name}" id="${field.name}" class="w-full p-2 border rounded" ${requiredAttr}>`;
+                    if (field.placeholder) { // Add a placeholder option if provided
+                        formHtml += `<option value="">${field.placeholder}</option>`;
+                    }
+                    field.options.forEach(option => {
+                        const selectedAttr = (String(option.value) === String(value)) ? 'selected' : '';
+                        formHtml += `<option value="${option.value}" ${selectedAttr}>${option.text}</option>`;
+                    });
+                    formHtml += `</select>`;
+                    break;
+                case 'file':
+                    // Specific handling for photo file in Guru Profile
+                    formHtml += `<input type="file" id="${field.name}" name="${field.name}" accept="${field.accept || 'image/*'}" class="w-full p-2 border rounded file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />`;
+                    if (field.previewHtml) {
+                        formHtml += field.previewHtml;
+                    }
+                    break;
+            }
+            formHtml += `</div>`;
+        });
+
+        showDataModal(title, formHtml, async (formElement) => {
+            const formData = new FormData(formElement);
+            const data = {};
+            for (let [key, value] of formData.entries()) {
+                if (key !== 'photoFile') { // photoFile handled separately
+                    data[key] = value;
+                }
+            }
+            submitCallback(data, formData.get('photoFile')); // Pass data object and photoFile
+        });
     }
+    window.renderGenericForm = renderGenericForm; // Expose to global scope for debugging/testing
 
     function closeDataModal() {
         dataModal.isOpen = false;
@@ -618,6 +675,78 @@ window.addEventListener('load', async () => {
     window.downloadSingleModulAjar = downloadSingleModulAjar; // Expose to global scope
 
 
+    /**
+     * Renders a generic table with dynamic headers, data, and action buttons.
+     * @param {string[]} headers - Array of table header names.
+     * @param {Object[]} data - Array of data objects to display.
+     * @param {Function} rowMapper - Function to map a data item to an array of table cell values (strings).
+     * @param {Object} actions - Object defining action buttons for each row.
+     * actions: {
+     * edit?: { fn: (id: string) => void, icon: string, class?: string },
+     * delete?: { fn: (id: string) => void, icon: string, class?: string },
+     * // Add other actions like download etc.
+     * }
+     * @param {Object} [options={}] - Optional configuration.
+     * @param {Function} [options.statusClassMapper] - Optional function to map status to Tailwind CSS class.
+     */
+    function renderGenericTable(headers, data, rowMapper, actions = {}, options = {}) {
+        let rowsHtml = '';
+        if (data.length > 0) {
+            data.forEach(item => {
+                const cells = rowMapper(item);
+                let actionButtonsHtml = '';
+                for (const actionName in actions) {
+                    const action = actions[actionName];
+                    let iconHtml = '';
+                    if (action.icon) {
+                        iconHtml = `<i data-lucide="${action.icon}" class="lucide lucide-${action.icon}" style="width: 18px; height: 18px;"></i>`;
+                    }
+                    actionButtonsHtml += `
+                        <button onclick="${action.fnName}('${item.id}', ${action.extraArgs ? JSON.stringify(action.extraArgs) : null})" class="${action.class || 'text-gray-600 hover:text-gray-800'}">
+                            ${iconHtml}
+                        </button>
+                    `;
+                }
+
+                let statusCell = '';
+                if (options.statusField && options.statusClassMapper) {
+                    const status = item[options.statusField];
+                    const statusClass = options.statusClassMapper(status);
+                    statusCell = `<td class="py-3 px-4"><span class="px-2 py-1 rounded-full text-xs font-semibold ${statusClass}">${status}</span></td>`;
+                }
+
+                rowsHtml += `
+                    <tr class="border-b hover:bg-gray-50">
+                        ${cells.map(cell => `<td class="py-3 px-4">${cell}</td>`).join('')}
+                        ${statusCell}
+                        <td class="py-3 px-4 flex gap-2">${actionButtonsHtml}</td>
+                    </tr>
+                `;
+            });
+        } else {
+            rowsHtml = `<tr><td colspan="${headers.length + (Object.keys(actions).length > 0 ? 1 : 0) + (options.statusField ? 1 : 0)}" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada data.</td></tr>`;
+        }
+
+        return `
+            <div class="overflow-x-auto">
+                <table class="min-w-full bg-white">
+                    <thead>
+                        <tr class="bg-blue-100 text-blue-800">
+                            ${headers.map(header => `<th class="py-3 px-4 text-left">${header}</th>`).join('')}
+                            ${(options.statusField && !headers.includes('Status')) ? `<th class="py-3 px-4 text-left">Status</th>` : ''}
+                            ${Object.keys(actions).length > 0 ? `<th class="py-3 px-4 text-left w-24">Aksi</th>` : ''}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${rowsHtml}
+                    </tbody>
+                </table>
+            </div>
+        `;
+    }
+    window.renderGenericTable = renderGenericTable; // Expose to global scope
+
+
     // --- Komponen Tampilan Konten (sebagai fungsi yang mengembalikan string HTML) ---
 
     function renderProfilGuruContent() {
@@ -630,58 +759,42 @@ window.addEventListener('load', async () => {
             </div>
         ` : '';
 
-        const formHtml = `
-            <input name="name" placeholder="Nama Lengkap" value="${guruProfile.name}" class="w-full p-2 border rounded" required />
-            <input name="nip" placeholder="NIP" value="${guruProfile.nip}" class="w-full p-2 border rounded" required />
-            <input name="email" type="email" placeholder="Email" value="${guruProfile.email}" class="w-full p-2 border rounded" required />
-            <input name="whatsapp" placeholder="Nomor Whatsapp" value="${guruProfile.whatsapp}" class="w-full p-2 border rounded" />
-            <label for="photoFile" class="block text-gray-700 text-sm font-bold mb-1">Unggah Foto Profil (Ukuran Max 100KB - untuk performa)</label>
-            <input type="file" id="photoFile" name="photoFile" accept="image/*" class="w-full p-2 border rounded file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
-            ${photoPreviewHtml}
-        `;
+        const fields = [
+            { name: "name", label: "Nama Lengkap", type: "text", required: true },
+            { name: "nip", label: "NIP", type: "text", required: true },
+            { name: "email", label: "Email", type: "email", required: true },
+            { name: "whatsapp", label: "Nomor Whatsapp", type: "text" },
+            { name: "photoFile", label: "Unggah Foto Profil (Ukuran Max 100KB - untuk performa)", type: "file", accept: "image/*", previewHtml: photoPreviewHtml }
+        ];
 
-        const handleSaveProfile = async (formElement) => {
-            const formData = new FormData(formElement);
-            const photoFile = formData.get('photoFile');
-            let newPhotoUrl = guruProfile.photo; // Default to current photo
+        const handleSaveProfile = async (data, photoFile) => {
+            let newPhotoUrl = guruProfile.photo;
 
             if (photoFile && photoFile.size > 0) {
-                const MAX_FILE_SIZE_BYTES = 100 * 1024; // 100 KB for Base64 in Firestore
+                const MAX_FILE_SIZE_BYTES = 100 * 1024;
                 if (photoFile.size > MAX_FILE_SIZE_BYTES) {
                     showMessage(`Ukuran file foto maksimum adalah ${MAX_FILE_SIZE_BYTES / 1024} KB.`, 'Ukuran File Terlalu Besar');
                     return;
                 }
-                loadingOverlay.style.display = 'flex'; // Tampilkan loading
+                loadingOverlay.style.display = 'flex';
                 try {
-                    const base64Image = await convertFileToBase64(photoFile);
-                    newPhotoUrl = base64Image;
+                    newPhotoUrl = await convertFileToBase64(photoFile);
                 } catch (error) {
                     console.error("Error converting image to Base64:", error);
                     showMessage(`Gagal memproses foto: ${error.message}`, 'Kesalahan Pemrosesan');
-                    loadingOverlay.style.display = 'none'; // Sembunyikan loading
                     return;
                 } finally {
-                    loadingOverlay.style.display = 'none'; // Sembunyikan loading
+                    loadingOverlay.style.display = 'none';
                 }
-            } else if (photoFile && photoFile.size === 0) {
-                 // This case handles when a file input is cleared but no new file is chosen.
-                 // The logic for clearing the photo to placeholder is already handled by clear-photo-button.
-                 // So, if it's just an empty file input and no explicit clear, keep the old photo.
-                 newPhotoUrl = guruProfile.photo;
+            } else if (photoFile && photoFile.size === 0 && guruProfile.photo !== 'https://placehold.co/128x128/E0E7FF/4F46E5?text=Foto') {
+                // If file input is explicitly cleared (and not already placeholder), keep old photo or handle as clear
+                // This condition relies on the clear button directly setting guruProfile.photo
             }
 
-
-            const updatedProfile = {
-                name: formData.get('name'),
-                nip: formData.get('nip'),
-                email: formData.get('email'),
-                whatsapp: formData.get('whatsapp'),
-                photo: newPhotoUrl
-            };
-
+            const updatedProfile = { ...data, photo: newPhotoUrl };
             try {
                 await setDoc(getDocRef('profile', 'guruProfileDoc'), updatedProfile);
-                guruProfile = updatedProfile; // Update local state immediately
+                guruProfile = updatedProfile;
                 closeDataModal();
                 showMessage('Profil guru berhasil diperbarui.', 'Berhasil');
             } catch (error) {
@@ -690,7 +803,6 @@ window.addEventListener('load', async () => {
             }
         };
 
-        // Returns the HTML string for the profile content
         const contentHtml = `
             <div id="profile-print-area" class="bg-white p-8 rounded-lg shadow-md flex flex-col md:flex-row items-center gap-8 print-area">
                 <div class="flex-shrink-0">
@@ -708,48 +820,42 @@ window.addEventListener('load', async () => {
             </div>
         `;
 
-        // After rendering, attach event listeners
-        setTimeout(() => { // Use setTimeout to ensure elements are in DOM
+        setTimeout(() => {
             const editButton = document.getElementById('edit-profile-button');
             if (editButton) {
                 editButton.onclick = () => {
-                    showDataModal("Ubah Profil Guru", formHtml, handleSaveProfile);
+                    renderGenericForm("Ubah Profil Guru", fields, handleSaveProfile, guruProfile);
                     const photoFileInput = document.getElementById('photoFile');
                     if (photoFileInput) {
-                        photoFileInput.onchange = (e) => {
+                        photoFileInput.onchange = async (e) => {
                             const file = e.target.files[0];
+                            const modalPreviewPhoto = document.getElementById('modal-preview-photo');
                             if (file) {
-                                const MAX_FILE_SIZE_BYTES = 100 * 1024; // 100 KB
+                                const MAX_FILE_SIZE_BYTES = 100 * 1024;
                                 if (file.size > MAX_FILE_SIZE_BYTES) {
                                     showMessage(`Ukuran file maksimum adalah ${MAX_FILE_SIZE_BYTES / 1024} KB.`, 'Ukuran File Terlalu Besar');
-                                    e.target.value = ''; // Clear the input
-                                    const modalPreviewPhoto = document.getElementById('modal-preview-photo');
-                                    if (modalPreviewPhoto) modalPreviewPhoto.src = guruProfile.photo; // Revert preview
+                                    e.target.value = '';
+                                    if (modalPreviewPhoto) modalPreviewPhoto.src = guruProfile.photo;
                                     return;
                                 }
                                 const reader = new FileReader();
-                                reader.onloadend = () => {
-                                    const modalPreviewPhoto = document.getElementById('modal-preview-photo');
-                                    if (modalPreviewPhoto) modalPreviewPhoto.src = reader.result;
-                                };
+                                reader.onloadend = () => { if (modalPreviewPhoto) modalPreviewPhoto.src = reader.result; };
                                 reader.readAsDataURL(file);
                             } else {
-                                const modalPreviewPhoto = document.getElementById('modal-preview-photo');
-                                if (modalPreviewPhoto) modalPreviewPhoto.src = guruProfile.photo; // Revert to current photo if input is cleared
+                                if (modalPreviewPhoto) modalPreviewPhoto.src = guruProfile.photo;
                             }
                         };
                     }
                     const clearPhotoButton = document.getElementById('clear-photo-button');
                     if (clearPhotoButton) {
                         clearPhotoButton.onclick = async () => {
-                            guruProfile.photo = 'https://placehold.co/128x128/E0E7FF/4F46E5?text=Foto'; // Set to placeholder
+                            guruProfile.photo = 'https://placehold.co/128x128/E0E7FF/4F46E5?text=Foto';
                             const modalPreviewPhoto = document.getElementById('modal-preview-photo');
                             if (modalPreviewPhoto) modalPreviewPhoto.src = guruProfile.photo;
                             const photoInput = document.getElementById('photoFile');
-                            if (photoInput) photoInput.value = ''; // Clear file input value
+                            if (photoInput) photoInput.value = '';
 
                             try {
-                                // Update Firestore with the placeholder URL
                                 await updateDoc(getDocRef('profile', 'guruProfileDoc'), { photo: guruProfile.photo });
                                 showMessage('Foto profil berhasil dihapus.', 'Berhasil');
                             } catch (error) {
@@ -758,89 +864,75 @@ window.addEventListener('load', async () => {
                             }
                         };
                     }
-                }, 0); // Short delay to ensure DOM is updated
+                };
+            }
+        }, 0);
 
         return contentHtml;
     }
 
     function renderJadwalMengajarContent() {
-        // Initialize listener for this data if not already done
         initializeScheduleListener();
 
         let rowsHtml = '';
-        const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']; // Ensure consistent order
-        for (const day of days) {
+        const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat'];
+
+        days.forEach(day => {
             rowsHtml += `<div class="mb-6">
                 <h3 class="text-xl font-semibold text-gray-700 mb-3 border-b pb-2">${day}</h3>`;
-            const lessonsForDay = schedule[day] || []; // Use fetched schedule
+            const lessonsForDay = schedule[day] || [];
+
+            const headers = ['Waktu', 'Mata Pelajaran'];
+            const rowMapper = (lesson) => [lesson.time, lesson.subject];
+            const actions = {
+                edit: { fnName: 'editLesson', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800', extraArgs: day },
+                delete: { fnName: 'confirmDeleteLesson', icon: 'trash-2', class: 'text-red-600 hover:text-red-800', extraArgs: day }
+            };
+
             if (lessonsForDay.length > 0) {
-                rowsHtml += `<ul class="space-y-3">`;
-                lessonsForDay.forEach(lesson => {
-                    rowsHtml += `
-                        <li class="flex items-center justify-between bg-blue-50 p-4 rounded-lg shadow-sm">
-                            <div>
-                                <p class="text-lg font-medium text-blue-800">${lesson.time}</p>
-                                <p class="text-gray-700">${lesson.subject}</p>
-                            </div>
-                            <div class="flex gap-2">
-                                <button onclick="editLesson('${day}', '${lesson.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 20px; height: 20px;"></i> </button>
-                                <button onclick="confirmDeleteLesson('${day}', '${lesson.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 20px; height: 20px;"></i> </button>
-                            </div>
-                        </li>
-                    `;
-                });
-                rowsHtml += `</ul>`;
+                rowsHtml += `
+                    <ul class="space-y-3">
+                        ${lessonsForDay.map(lesson => `
+                            <li class="flex items-center justify-between bg-blue-50 p-4 rounded-lg shadow-sm">
+                                <div>
+                                    <p class="text-lg font-medium text-blue-800">${lesson.time}</p>
+                                    <p class="text-gray-700">${lesson.subject}</p>
+                                </div>
+                                <div class="flex gap-2">
+                                    <button onclick="editLesson('${day}', '${lesson.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 20px; height: 20px;"></i> </button>
+                                    <button onclick="confirmDeleteLesson('${day}', '${lesson.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 20px; height: 20px;"></i> </button>
+                                </div>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
             } else {
                 rowsHtml += `<p class="text-gray-500 italic">Tidak ada jadwal untuk hari ${day}.</p>`;
             }
             rowsHtml += `</div>`;
-        }
+        });
 
-        const contentHtml = `
-            <div id="schedule-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                ${rowsHtml}
-            </div>
-        `;
+        const contentHtml = `<div id="schedule-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">${rowsHtml}</div>`;
         return contentHtml;
     }
 
     window.addLesson = () => {
         editingItem = null;
-        const formHtml = `
-            <div>
-                <label for="day" class="block text-gray-700 text-sm font-bold mb-1">Hari</label>
-                <select name="day" id="day" class="w-full p-2 border rounded" required>
-                    ${Object.keys(initialSchedule).map(day => `<option value="${day}">${day}</option>`).join('')}
-                </select>
-            </div>
-            <div>
-                <label for="time" class="block text-gray-700 text-sm font-bold mb-1">Waktu</label>
-                <input type="text" name="time" id="time" placeholder="Contoh: 07:30 - 09:00" class="w-full p-2 border rounded" required />
-            </div>
-            <div>
-                <label for="subject" class="block text-gray-700 text-sm font-bold mb-1">Mata Pelajaran</label>
-                <input type="text" name="subject" id="subject" placeholder="Contoh: Matematika" class="w-full p-2 border rounded" required />
-            </div>
-        `;
-        showDataModal("Tambah Jadwal Pelajaran Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newLesson = {
-                id: Date.now().toString(), // Use string ID for Firestore consistency
-                time: formData.get('time'),
-                subject: formData.get('subject')
-            };
-            const day = formData.get('day');
-
+        const fields = [
+            { name: "day", label: "Hari", type: "select", required: true, options: Object.keys(initialSchedule).map(day => ({ value: day, text: day })) },
+            { name: "time", label: "Waktu", type: "text", placeholder: "Contoh: 07:30 - 09:00", required: true },
+            { name: "subject", label: "Mata Pelajaran", type: "text", placeholder: "Contoh: Matematika", required: true }
+        ];
+        renderGenericForm("Tambah Jadwal Pelajaran Baru", fields, async (data) => {
+            const newLesson = { id: Date.now().toString(), time: data.time, subject: data.subject };
+            const day = data.day;
             try {
                 const dayDocRef = getDocRef('schedules', day);
                 const docSnap = await getDoc(dayDocRef);
-                let lessons = [];
-                if (docSnap.exists()) {
-                    lessons = docSnap.data().lessons || [];
-                }
+                let lessons = docSnap.exists() ? docSnap.data().lessons || [] : [];
                 lessons.push(newLesson);
-                lessons.sort((a, b) => a.time.localeCompare(b.time)); // Sort locally
-                await setDoc(dayDocRef, { lessons: lessons }); // Overwrite with sorted array
+                lessons.sort((a, b) => a.time.localeCompare(b.time));
+                await setDoc(dayDocRef, { lessons: lessons });
                 closeDataModal();
                 showMessage('Jadwal pelajaran baru berhasil ditambahkan.', 'Berhasil');
             } catch (error) {
@@ -853,36 +945,19 @@ window.addEventListener('load', async () => {
     window.editLesson = (day, lessonId) => {
         const lesson = schedule[day].find(l => l.id === lessonId);
         if (!lesson) return;
-        editingItem = { day, lesson }; // Store original day and lesson
-        const formHtml = `
-            <div>
-                <label for="day" class="block text-gray-700 text-sm font-bold mb-1">Hari</label>
-                <select name="day" id="day" class="w-full p-2 border rounded" required>
-                    ${Object.keys(initialSchedule).map(d => `<option value="${d}" ${d === day ? 'selected' : ''}>${d}</option>`).join('')}
-                </select>
-            </div>
-            <div>
-                <label for="time" class="block text-gray-700 text-sm font-bold mb-1">Waktu</label>
-                <input type="text" name="time" id="time" placeholder="Contoh: 07:30 - 09:00" value="${lesson.time}" class="w-full p-2 border rounded" required />
-            </div>
-            <div>
-                <label for="subject" class="block text-gray-700 text-sm font-bold mb-1">Mata Pelajaran</label>
-                <input type="text" name="subject" id="subject" placeholder="Contoh: Matematika" value="${lesson.subject}" class="w-full p-2 border rounded" required />
-            </div>
-        `;
-        showDataModal("Ubah Jadwal Pelajaran", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedLesson = {
-                id: editingItem.lesson.id,
-                time: formData.get('time'),
-                subject: formData.get('subject')
-            };
-            const newDay = formData.get('day');
+        editingItem = { day, lesson };
+        const fields = [
+            { name: "day", label: "Hari", type: "select", required: true, options: Object.keys(initialSchedule).map(d => ({ value: d, text: d })), value: day },
+            { name: "time", label: "Waktu", type: "text", placeholder: "Contoh: 07:30 - 09:00", required: true, value: lesson.time },
+            { name: "subject", label: "Mata Pelajaran", type: "text", placeholder: "Contoh: Matematika", required: true, value: lesson.subject }
+        ];
+        renderGenericForm("Ubah Jadwal Pelajaran", fields, async (data) => {
+            const updatedLesson = { id: editingItem.lesson.id, time: data.time, subject: data.subject };
+            const newDay = data.day;
             const originalDay = editingItem.day;
 
             try {
                 if (originalDay !== newDay) {
-                    // Remove from original day's array
                     const originalDayDocRef = getDocRef('schedules', originalDay);
                     const originalDocSnap = await getDoc(originalDayDocRef);
                     if (originalDocSnap.exists()) {
@@ -890,19 +965,13 @@ window.addEventListener('load', async () => {
                         await setDoc(originalDayDocRef, { lessons: originalLessons });
                     }
 
-                    // Add to new day's array
                     const newDayDocRef = getDocRef('schedules', newDay);
                     const newDocSnap = await getDoc(newDayDocRef);
-                    let newLessons = [];
-                    if (newDocSnap.exists()) {
-                        newLessons = newDocSnap.data().lessons || [];
-                    }
+                    let newLessons = newDocSnap.exists() ? newDocSnap.data().lessons || [] : [];
                     newLessons.push(updatedLesson);
                     newLessons.sort((a, b) => a.time.localeCompare(b.time));
                     await setDoc(newDayDocRef, { lessons: newLessons });
-
                 } else {
-                    // Update in the same day's array
                     const dayDocRef = getDocRef('schedules', originalDay);
                     const docSnap = await getDoc(dayDocRef);
                     if (docSnap.exists()) {
@@ -918,7 +987,7 @@ window.addEventListener('load', async () => {
                 console.error("Error editing lesson:", error);
                 showMessage(`Gagal memperbarui pelajaran: ${error.message}`, 'Kesalahan');
             }
-        });
+        }, lesson); // Pass lesson object as initial data
     };
 
     window.confirmDeleteLesson = (day, lessonId) => {
@@ -944,51 +1013,25 @@ window.addEventListener('load', async () => {
 
 
     function renderDaftarSiswaContent() {
-        // Initialize listener for this data if not already done
         initializeStudentsListener();
 
-        let rowsHtml = '';
-        if (studentData.length > 0) {
-            studentData.forEach(student => {
-                rowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${student.nisn}</td>
-                        <td class="py-3 px-4">${student.name}</td>
-                        <td class="py-3 px-4">${student.gender}</td>
-                        <td class="py-3 px-4">${new Date(student.birthDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                        <td class="py-3 px-4">${student.parent}</td>
-                        <td class="py-3 px-4">${student.address}</td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editStudent('${student.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteStudent('${student.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            rowsHtml = `<tr><td colspan="7" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada data siswa.</td></tr>`;
-        }
+        const headers = ['NISN', 'Nama', 'Jenis Kelamin', 'Tanggal Lahir', 'Orang Tua/Wali', 'Alamat'];
+        const rowMapper = (student) => [
+            student.nisn,
+            student.name,
+            student.gender,
+            new Date(student.birthDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
+            student.parent,
+            student.address
+        ];
+        const actions = {
+            edit: { fnName: 'editStudent', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+            delete: { fnName: 'confirmDeleteStudent', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+        };
 
         const contentHtml = `
             <div id="student-list-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">NISN</th>
-                                <th class="py-3 px-4 text-left">Nama</th>
-                                <th class="py-3 px-4 text-left">Jenis Kelamin</th>
-                                <th class="py-3 px-4 text-left">Tanggal Lahir</th>
-                                <th class="py-3 px-4 text-left">Orang Tua/Wali</th>
-                                <th class="py-3 px-4 text-left">Alamat</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                </div>
+                ${renderGenericTable(headers, studentData, rowMapper, actions)}
             </div>
         `;
         return contentHtml;
@@ -996,32 +1039,18 @@ window.addEventListener('load', async () => {
 
     window.addStudent = () => {
         editingItem = null;
-        const formHtml = `
-            <input name="nisn" placeholder="NISN" class="w-full p-2 border rounded" required />
-            <input name="name" placeholder="Nama Lengkap" class="w-full p-2 border rounded" required />
-            <select name="gender" class="w-full p-2 border rounded" required>
-                <option value="">Pilih Jenis Kelamin</option>
-                <option value="Laki-laki">Laki-laki</option>
-                <option value="Perempuan">Perempuan</option>
-            </select>
-            <input name="birthPlace" placeholder="Tempat Lahir" class="w-full p-2 border rounded" required />
-            <input type="date" name="birthDate" class="w-full p-2 border rounded" required />
-            <input name="parent" placeholder="Nama Orang Tua/Wali" class="w-full p-2 border rounded" required />
-            <textarea name="address" placeholder="Alamat Lengkap" class="w-full p-2 border rounded" rows="3"></textarea>
-        `;
-        showDataModal("Tambah Siswa Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newStudent = {
-                nisn: formData.get('nisn'),
-                name: formData.get('name'),
-                gender: formData.get('gender'),
-                birthPlace: formData.get('birthPlace'),
-                birthDate: formData.get('birthDate'),
-                parent: formData.get('parent'),
-                address: formData.get('address')
-            };
+        const fields = [
+            { name: "nisn", label: "NISN", type: "text", required: true },
+            { name: "name", label: "Nama Lengkap", type: "text", required: true },
+            { name: "gender", label: "Jenis Kelamin", type: "select", required: true, placeholder: "Pilih Jenis Kelamin", options: [{ value: "Laki-laki", text: "Laki-laki" }, { value: "Perempuan", text: "Perempuan" }] },
+            { name: "birthPlace", label: "Tempat Lahir", type: "text", required: true },
+            { name: "birthDate", label: "Tanggal Lahir", type: "date", required: true },
+            { name: "parent", label: "Nama Orang Tua/Wali", type: "text", required: true },
+            { name: "address", label: "Alamat Lengkap", type: "textarea", rows: 3 }
+        ];
+        renderGenericForm("Tambah Siswa Baru", fields, async (data) => {
             try {
-                await addDoc(getCollectionRef('students'), newStudent);
+                await addDoc(getCollectionRef('students'), data);
                 closeDataModal();
                 showMessage('Siswa baru berhasil ditambahkan.', 'Berhasil');
             } catch (error) {
@@ -1035,39 +1064,25 @@ window.addEventListener('load', async () => {
         const student = studentData.find(s => s.id === studentId);
         if (!student) return;
         editingItem = student;
-        const formHtml = `
-            <input name="nisn" placeholder="NISN" value="${student.nisn}" class="w-full p-2 border rounded" required />
-            <input name="name" placeholder="Nama Lengkap" value="${student.name}" class="w-full p-2 border rounded" required />
-            <select name="gender" class="w-full p-2 border rounded" required>
-                <option value="">Pilih Jenis Kelamin</option>
-                <option value="Laki-laki" ${student.gender === 'Laki-laki' ? 'selected' : ''}>Laki-laki</option>
-                <option value="Perempuan" ${student.gender === 'Perempuan' ? 'selected' : ''}>Perempuan</option>
-            </select>
-            <input name="birthPlace" placeholder="Tempat Lahir" value="${student.birthPlace}" class="w-full p-2 border rounded" required />
-            <input type="date" name="birthDate" value="${student.birthDate}" class="w-full p-2 border rounded" required />
-            <input name="parent" placeholder="Nama Orang Tua/Wali" value="${student.parent}" class="w-full p-2 border rounded" required />
-            <textarea name="address" placeholder="Alamat Lengkap" class="w-full p-2 border rounded" rows="3">${student.address}</textarea>
-        `;
-        showDataModal("Ubah Data Siswa", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedStudent = {
-                nisn: formData.get('nisn'),
-                name: formData.get('name'),
-                gender: formData.get('gender'),
-                birthPlace: formData.get('birthPlace'),
-                birthDate: formData.get('birthDate'),
-                parent: formData.get('parent'),
-                address: formData.get('address')
-            };
+        const fields = [
+            { name: "nisn", label: "NISN", type: "text", required: true, value: student.nisn },
+            { name: "name", label: "Nama Lengkap", type: "text", required: true, value: student.name },
+            { name: "gender", label: "Jenis Kelamin", type: "select", required: true, placeholder: "Pilih Jenis Kelamin", options: [{ value: "Laki-laki", text: "Laki-laki" }, { value: "Perempuan", text: "Perempuan" }], value: student.gender },
+            { name: "birthPlace", label: "Tempat Lahir", type: "text", required: true, value: student.birthPlace },
+            { name: "birthDate", label: "Tanggal Lahir", type: "date", required: true, value: student.birthDate },
+            { name: "parent", label: "Nama Orang Tua/Wali", type: "text", required: true, value: student.parent },
+            { name: "address", label: "Alamat Lengkap", type: "textarea", rows: 3, value: student.address }
+        ];
+        renderGenericForm("Ubah Data Siswa", fields, async (data) => {
             try {
-                await updateDoc(getDocRef('students', editingItem.id), updatedStudent);
+                await updateDoc(getDocRef('students', editingItem.id), data);
                 closeDataModal();
                 showMessage('Data siswa berhasil diperbarui.', 'Berhasil');
             } catch (error) {
                 console.error("Error updating student:", error);
                 showMessage(`Gagal memperbarui siswa: ${error.message}`, 'Kesalahan');
             }
-        });
+        }, student);
     };
 
     window.confirmDeleteStudent = (studentId) => {
@@ -1085,93 +1100,50 @@ window.addEventListener('load', async () => {
     };
 
     function renderDaftarHadirContent() {
-        // Initialize listener for this data if not already done
         initializeDaftarHadirListener();
 
         let filteredDaftarHadir = selectedDateDaftarHadir
             ? daftarHadir.filter(item => item.date === selectedDateDaftarHadir)
             : daftarHadir;
 
-        // Group attendance by date for recap
         const attendanceRecap = filteredDaftarHadir.reduce((acc, curr) => {
             if (!acc[curr.date]) {
-            acc[curr.date] = {
-                Hadir: 0,
-                Sakit: 0,
-                Izin: 0,
-                Alpha: 0,
-                totalStudents: studentData.length
-            };
+                acc[curr.date] = { Hadir: 0, Sakit: 0, Izin: 0, Alpha: 0, totalStudents: studentData.length };
             }
             acc[curr.date][curr.status]++;
             return acc;
         }, {});
 
-        let recapHtml = '';
-        if (Object.keys(attendanceRecap).length > 0) {
-            let recapRows = '';
-            Object.entries(attendanceRecap).sort((a, b) => a[0].localeCompare(b[0])).forEach(([date, data]) => {
-                recapRows += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-2 px-3">${new Date(date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                        <td class="py-2 px-3">${data.Hadir}</td>
-                        <td class="py-2 px-3">${data.Sakit}</td>
-                        <td class="py-2 px-3">${data.Izin}</td>
-                        <td class="py-2 px-3">${data.Alpha}</td>
-                        <td class="py-2 px-3">${data.totalStudents}</td>
-                    </tr>
-                `;
-            });
-            recapHtml = `
-                <div class="overflow-x-auto mb-6">
-                    <table class="min-w-full bg-white border border-gray-200">
-                        <thead>
-                            <tr class="bg-green-100 text-green-800">
-                                <th class="py-2 px-3 text-left border-b">Tanggal</th>
-                                <th class="py-2 px-3 text-left border-b">Hadir</th>
-                                <th class="py-2 px-3 text-left border-b">Sakit</th>
-                                <th class="py-2 px-3 text-left border-b">Izin</th>
-                                <th class="py-2 px-3 text-left border-b">Alpha</th>
-                                <th class="py-2 px-3 text-left border-b">Total Siswa</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${recapRows}
-                        </tbody>
-                    </table>
-                </div>
-            `;
-        } else {
-            recapHtml = `<p class="text-gray-500 italic mb-4">Tidak ada data rekapitulasi untuk tanggal ini.</p>`;
-        }
+        const recapHeaders = ['Tanggal', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total Siswa'];
+        const recapRowMapper = (item) => [
+            new Date(item[0]).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
+            item[1].Hadir,
+            item[1].Sakit,
+            item[1].Izin,
+            item[1].Alpha,
+            item[1].totalStudents
+        ];
+        const sortedRecapData = Object.entries(attendanceRecap).sort((a, b) => a[0].localeCompare(b[0]));
+        let recapHtml = sortedRecapData.length > 0
+            ? `<h3 class="text-xl font-semibold text-gray-700 mb-4">Rekapitulasi Kehadiran</h3>${renderGenericTable(recapHeaders, sortedRecapData, recapRowMapper)}`
+            : `<p class="text-gray-500 italic mb-4">Tidak ada data rekapitulasi untuk tanggal ini.</p>`;
 
-        let detailRowsHtml = '';
-        if (filteredDaftarHadir.length > 0) {
-            filteredDaftarHadir.forEach(attendance => {
-                const statusClass =
-                    attendance.status === 'Hadir' ? 'bg-green-100 text-green-800' :
-                    attendance.status === 'Sakit' ? 'bg-yellow-100 text-yellow-800' :
-                    attendance.status === 'Izin' ? 'bg-blue-100 text-blue-800' :
-                    'bg-red-100 text-red-800';
-                detailRowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${new Date(attendance.date).toLocaleDateString('id-ID')}</td>
-                        <td class="py-3 px-4">${attendance.studentName}</td>
-                        <td class="py-3 px-4">
-                            <span class="px-2 py-1 rounded-full text-xs font-semibold ${statusClass}">
-                                ${attendance.status}
-                            </span>
-                        </td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editAttendance('${attendance.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteAttendance('${attendance.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            detailRowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada data kehadiran.</td></tr>`;
-        }
+        const detailHeaders = ['Tanggal', 'Nama Siswa', 'Status'];
+        const detailRowMapper = (attendance) => [
+            new Date(attendance.date).toLocaleDateString('id-ID'),
+            attendance.studentName,
+            attendance.status // Status will be handled by statusClassMapper
+        ];
+        const detailActions = {
+            edit: { fnName: 'editAttendance', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+            delete: { fnName: 'confirmDeleteAttendance', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+        };
+        const statusClassMapper = (status) => {
+            if (status === 'Hadir') return 'bg-green-100 text-green-800';
+            if (status === 'Sakit') return 'bg-yellow-100 text-yellow-800';
+            if (status === 'Izin') return 'bg-blue-100 text-blue-800';
+            return 'bg-red-100 text-red-800';
+        };
 
         const contentHtml = `
             <div class="bg-white p-6 rounded-lg shadow-md mb-6">
@@ -1180,32 +1152,16 @@ window.addEventListener('load', async () => {
                 ${selectedDateDaftarHadir ? `<button onclick="clearAttendanceDateFilter()" class="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded-lg text-sm">Hapus Filter</button>` : ''}
             </div>
             <div id="daftar-hadir-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <h3 class="text-xl font-semibold text-gray-700 mb-4">Rekapitulasi Kehadiran</h3>
                 ${recapHtml}
                 <h3 class="text-xl font-semibold text-gray-700 mb-4">Detail Kehadiran</h3>
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">Tanggal</th>
-                                <th class="py-3 px-4 text-left">Nama Siswa</th>
-                                <th class="py-3 px-4 text-left">Status</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${detailRowsHtml}
-                        </tbody>
-                    </table>
-                </div>
+                ${renderGenericTable(detailHeaders, filteredDaftarHadir, detailRowMapper, detailActions, { statusField: 'status', statusClassMapper: statusClassMapper })}
             </div>
         `;
 
-        // Attach event listener for the filter after rendering
         setTimeout(() => {
             document.getElementById('attendance-date-filter').onchange = (e) => {
                 selectedDateDaftarHadir = e.target.value;
-                renderApp(); // Re-render to apply filter
+                renderApp();
             };
         }, 0);
         return contentHtml;
@@ -1213,44 +1169,20 @@ window.addEventListener('load', async () => {
 
     window.clearAttendanceDateFilter = () => {
         selectedDateDaftarHadir = '';
-        renderApp(); // Re-render to clear filter
+        renderApp();
     };
 
     window.addAttendance = () => {
         editingItem = null;
-        const studentOptions = studentData.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
-        const formHtml = `
-            <div>
-                <label for="date" class="block text-gray-700 text-sm font-bold mb-1">Tanggal</label>
-                <input type="date" name="date" id="date" class="w-full p-2 border rounded" required />
-            </div>
-            <div>
-                <label for="studentName" class="block text-gray-700 text-sm font-bold mb-1">Nama Siswa</label>
-                <select name="studentName" id="studentName" class="w-full p-2 border rounded" required>
-                    <option value="">Pilih Siswa</option>
-                    ${studentOptions}
-                </select>
-            </div>
-            <div>
-                <label for="status" class="block text-gray-700 text-sm font-bold mb-1">Status</label>
-                <select name="status" id="status" class="w-full p-2 border rounded" required>
-                    <option value="">Pilih Status</option>
-                    <option value="Hadir">Hadir</option>
-                    <option value="Sakit">Sakit</option>
-                    <option value="Izin">Izin</option>
-                    <option value="Alpha">Alpha</option>
-                </select>
-            </div>
-        `;
-        showDataModal("Tambah Data Kehadiran Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newAttendance = {
-                date: formData.get('date'),
-                studentName: formData.get('studentName'),
-                status: formData.get('status')
-            };
+        const studentOptions = studentData.map(s => ({ value: s.name, text: s.name }));
+        const fields = [
+            { name: "date", label: "Tanggal", type: "date", required: true },
+            { name: "studentName", label: "Nama Siswa", type: "select", required: true, placeholder: "Pilih Siswa", options: studentOptions },
+            { name: "status", label: "Status", type: "select", required: true, placeholder: "Pilih Status", options: [{ value: "Hadir", text: "Hadir" }, { value: "Sakit", text: "Sakit" }, { value: "Izin", text: "Izin" }, { value: "Alpha", text: "Alpha" }] }
+        ];
+        renderGenericForm("Tambah Data Kehadiran Baru", fields, async (data) => {
             try {
-                await addDoc(getCollectionRef('attendance'), newAttendance);
+                await addDoc(getCollectionRef('attendance'), data);
                 closeDataModal();
                 showMessage('Data kehadiran baru berhasil ditambahkan.', 'Berhasil');
             } catch (error) {
@@ -1264,46 +1196,22 @@ window.addEventListener('load', async () => {
         const attendance = daftarHadir.find(a => a.id === attendanceId);
         if (!attendance) return;
         editingItem = attendance;
-        const studentOptions = studentData.map(s => `<option value="${s.name}" ${s.name === attendance.studentName ? 'selected' : ''}>${s.name}</option>`).join('');
-        const formHtml = `
-            <div>
-                <label for="date" class="block text-gray-700 text-sm font-bold mb-1">Tanggal</label>
-                <input type="date" name="date" id="date" value="${attendance.date}" class="w-full p-2 border rounded" required />
-            </div>
-            <div>
-                <label for="studentName" class="block text-gray-700 text-sm font-bold mb-1">Nama Siswa</label>
-                <select name="studentName" id="studentName" class="w-full p-2 border rounded" required>
-                    <option value="">Pilih Siswa</option>
-                    ${studentOptions}
-                </select>
-            </div>
-            <div>
-                <label for="status" class="block text-gray-700 text-sm font-bold mb-1">Status</label>
-                <select name="status" id="status" class="w-full p-2 border rounded" required>
-                    <option value="">Pilih Status</option>
-                    <option value="Hadir" ${attendance.status === 'Hadir' ? 'selected' : ''}>Hadir</option>
-                    <option value="Sakit" ${attendance.status === 'Sakit' ? 'selected' : ''}>Sakit</option>
-                    <option value="Izin" ${attendance.status === 'Izin' ? 'selected' : ''}>Izin</option>
-                    <option value="Alpha" ${attendance.status === 'Alpha' ? 'selected' : ''}>Alpha</option>
-                </select>
-            </div>
-        `;
-        showDataModal("Ubah Data Kehadiran", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedAttendance = {
-                date: formData.get('date'),
-                studentName: formData.get('studentName'),
-                status: formData.get('status')
-            };
+        const studentOptions = studentData.map(s => ({ value: s.name, text: s.name }));
+        const fields = [
+            { name: "date", label: "Tanggal", type: "date", required: true, value: attendance.date },
+            { name: "studentName", label: "Nama Siswa", type: "select", required: true, placeholder: "Pilih Siswa", options: studentOptions, value: attendance.studentName },
+            { name: "status", label: "Status", type: "select", required: true, placeholder: "Pilih Status", options: [{ value: "Hadir", text: "Hadir" }, { value: "Sakit", text: "Sakit" }, { value: "Izin", text: "Izin" }, { value: "Alpha", text: "Alpha" }], value: attendance.status }
+        ];
+        renderGenericForm("Ubah Data Kehadiran", fields, async (data) => {
             try {
-                await updateDoc(getDocRef('attendance', editingItem.id), updatedAttendance);
+                await updateDoc(getDocRef('attendance', editingItem.id), data);
                 closeDataModal();
                 showMessage('Data kehadiran berhasil diperbarui.', 'Berhasil');
             } catch (error) {
                 console.error("Error updating attendance:", error);
                 showMessage(`Gagal memperbarui kehadiran: ${error.message}`, 'Kesalahan');
             }
-        });
+        }, attendance);
     };
 
     window.confirmDeleteAttendance = (attendanceId) => {
@@ -1322,45 +1230,18 @@ window.addEventListener('load', async () => {
 
 
     function renderProgramSemesterTahunanContent() {
-        // Initialize listener for this data if not already done
         initializeProgramSemesterTahunanListener();
 
-        let rowsHtml = '';
-        if (programSemesterTahunan.length > 0) {
-            programSemesterTahunan.forEach(program => {
-                rowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${program.programName}</td>
-                        <td class="py-3 px-4">${program.description}</td>
-                        <td class="py-3 px-4">${program.year}</td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editProgramSemesterTahunan('${program.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteProgramSemesterTahunan('${program.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada program semester atau tahunan.</td></tr>`;
-        }
+        const headers = ['Nama Program', 'Deskripsi', 'Tahun'];
+        const rowMapper = (program) => [program.programName, program.description, program.year];
+        const actions = {
+            edit: { fnName: 'editProgramSemesterTahunan', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+            delete: { fnName: 'confirmDeleteProgramSemesterTahunan', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+        };
 
         const contentHtml = `
             <div id="program-semester-tahunan-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">Nama Program</th>
-                                <th class="py-3 px-4 text-left">Deskripsi</th>
-                                <th class="py-3 px-4 text-left">Tahun</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                </div>
+                ${renderGenericTable(headers, programSemesterTahunan, rowMapper, actions)}
             </div>
         `;
         return contentHtml;
@@ -1368,20 +1249,14 @@ window.addEventListener('load', async () => {
 
     window.addProgramSemesterTahunan = () => {
         editingItem = null;
-        const formHtml = `
-            <input name="programName" placeholder="Nama Program" class="w-full p-2 border rounded" required />
-            <textarea name="description" placeholder="Deskripsi Program" class="w-full p-2 border rounded" rows="3"></textarea>
-            <input name="year" placeholder="Tahun" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Tambah Program Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newProgram = {
-                programName: formData.get('programName'),
-                description: formData.get('description'),
-                year: formData.get('year')
-            };
+        const fields = [
+            { name: "programName", label: "Nama Program", type: "text", required: true },
+            { name: "description", label: "Deskripsi Program", type: "textarea", rows: 3 },
+            { name: "year", label: "Tahun", type: "text", required: true }
+        ];
+        renderGenericForm("Tambah Program Baru", fields, async (data) => {
             try {
-                await addDoc(getCollectionRef('semester_programs'), newProgram);
+                await addDoc(getCollectionRef('semester_programs'), data);
                 closeDataModal();
                 showMessage('Program baru berhasil ditambahkan.', 'Berhasil');
             } catch (error) {
@@ -1395,27 +1270,21 @@ window.addEventListener('load', async () => {
         const program = programSemesterTahunan.find(p => p.id === programId);
         if (!program) return;
         editingItem = program;
-        const formHtml = `
-            <input name="programName" placeholder="Nama Program" value="${program.programName}" class="w-full p-2 border rounded" required />
-            <textarea name="description" placeholder="Deskripsi Program" class="w-full p-2 border rounded" rows="3">${program.description}</textarea>
-            <input name="year" placeholder="Tahun" value="${program.year}" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Ubah Program", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedProgram = {
-                programName: formData.get('programName'),
-                description: formData.get('description'),
-                year: formData.get('year')
-            };
+        const fields = [
+            { name: "programName", label: "Nama Program", type: "text", required: true, value: program.programName },
+            { name: "description", label: "Deskripsi Program", type: "textarea", rows: 3, value: program.description },
+            { name: "year", label: "Tahun", type: "text", required: true, value: program.year }
+        ];
+        renderGenericForm("Ubah Program", fields, async (data) => {
             try {
-                await updateDoc(getDocRef('semester_programs', editingItem.id), updatedProgram);
+                await updateDoc(getDocRef('semester_programs', editingItem.id), data);
                 closeDataModal();
                 showMessage('Program berhasil diperbarui.', 'Berhasil');
             } catch (error) {
                 console.error("Error updating program semester tahunan:", error);
                 showMessage(`Gagal memperbarui program: ${error.message}`, 'Kesalahan');
             }
-        });
+        }, program);
     };
 
     window.confirmDeleteProgramSemesterTahunan = (programId) => {
@@ -1434,45 +1303,22 @@ window.addEventListener('load', async () => {
 
 
     function renderKalenderPendidikanContent() {
-        // Initialize listener for this data if not already done
         initializeKalenderPendidikanListener();
 
-        let rowsHtml = '';
-        if (kalenderPendidikan.length > 0) {
-            kalenderPendidikan.forEach(event => {
-                rowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${event.eventName}</td>
-                        <td class="py-3 px-4">${new Date(event.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                        <td class="py-3 px-4">${event.notes}</td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editCalendarEvent('${event.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteCalendarEvent('${event.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada acara dalam kalender pendidikan.</td></tr>`;
-        }
+        const headers = ['Nama Acara', 'Tanggal', 'Catatan'];
+        const rowMapper = (event) => [
+            event.eventName,
+            new Date(event.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
+            event.notes
+        ];
+        const actions = {
+            edit: { fnName: 'editCalendarEvent', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+            delete: { fnName: 'confirmDeleteCalendarEvent', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+        };
 
         const contentHtml = `
             <div id="kalender-pendidikan-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">Nama Acara</th>
-                                <th class="py-3 px-4 text-left">Tanggal</th>
-                                <th class="py-3 px-4 text-left">Catatan</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                </div>
+                ${renderGenericTable(headers, kalenderPendidikan, rowMapper, actions)}
             </div>
         `;
         return contentHtml;
@@ -1480,23 +1326,14 @@ window.addEventListener('load', async () => {
 
     window.addCalendarEvent = () => {
         editingItem = null;
-        const formHtml = `
-            <input name="eventName" placeholder="Nama Acara" class="w-full p-2 border rounded" required />
-            <div>
-                <label for="date" class="block text-gray-700 text-sm font-bold mb-1">Tanggal</label>
-                <input type="date" name="date" id="date" class="w-full p-2 border rounded" required />
-            </div>
-            <textarea name="notes" placeholder="Catatan" class="w-full p-2 border rounded" rows="3"></textarea>
-        `;
-        showDataModal("Tambah Acara Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newEvent = {
-                eventName: formData.get('eventName'),
-                date: formData.get('date'),
-                notes: formData.get('notes')
-            };
+        const fields = [
+            { name: "eventName", label: "Nama Acara", type: "text", required: true },
+            { name: "date", label: "Tanggal", type: "date", required: true },
+            { name: "notes", label: "Catatan", type: "textarea", rows: 3 }
+        ];
+        renderGenericForm("Tambah Acara Baru", fields, async (data) => {
             try {
-                await addDoc(getCollectionRef('calendar_events'), newEvent);
+                await addDoc(getCollectionRef('calendar_events'), data);
                 closeDataModal();
                 showMessage('Acara baru berhasil ditambahkan.', 'Berhasil');
             } catch (error) {
@@ -1510,30 +1347,21 @@ window.addEventListener('load', async () => {
         const event = kalenderPendidikan.find(ev => ev.id === eventId);
         if (!event) return;
         editingItem = event;
-        const formHtml = `
-            <input name="eventName" placeholder="Nama Acara" value="${event.eventName}" class="w-full p-2 border rounded" required />
-            <div>
-                <label for="date" class="block text-gray-700 text-sm font-bold mb-1">Tanggal</label>
-                <input type="date" name="date" id="date" value="${event.date}" class="w-full p-2 border rounded" required />
-            </div>
-            <textarea name="notes" placeholder="Catatan" class="w-full p-2 border rounded" rows="3">${event.notes}</textarea>
-        `;
-        showDataModal("Ubah Acara", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedEvent = {
-                eventName: formData.get('eventName'),
-                date: formData.get('date'),
-                notes: formData.get('notes')
-            };
+        const fields = [
+            { name: "eventName", label: "Nama Acara", type: "text", required: true, value: event.eventName },
+            { name: "date", label: "Tanggal", type: "date", required: true, value: event.date },
+            { name: "notes", label: "Catatan", type: "textarea", rows: 3, value: event.notes }
+        ];
+        renderGenericForm("Ubah Acara", fields, async (data) => {
             try {
-                await updateDoc(getDocRef('calendar_events', editingItem.id), updatedEvent);
+                await updateDoc(getDocRef('calendar_events', editingItem.id), data);
                 closeDataModal();
                 showMessage('Acara berhasil diperbarui.', 'Berhasil');
             } catch (error) {
                 console.error("Error updating calendar event:", error);
                 showMessage(`Gagal memperbarui acara: ${error.message}`, 'Kesalahan');
             }
-        });
+        }, event);
     };
 
     window.confirmDeleteCalendarEvent = (eventId) => {
@@ -1552,47 +1380,21 @@ window.addEventListener('load', async () => {
 
 
     function renderDaftarNilaiContent() {
-        // Initialize listener for this data if not already done
         initializeDaftarNilaiListener();
 
-        let rowsHtml = '';
-        if (daftarNilai.length > 0) {
-            daftarNilai.forEach(entry => {
-                rowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${entry.subjectName}</td>
-                        <td class="py-3 px-4">
-                            <a href="${entry.googleSheetLink}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
-                                Buka Link
-                            </a>
-                        </td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editDaftarNilaiEntry('${entry.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteDaftarNilaiEntry('${entry.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            rowsHtml = `<tr><td colspan="3" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada entri daftar nilai.</td></tr>`;
-        }
+        const headers = ['Mata Pelajaran', 'Link Google Sheet'];
+        const rowMapper = (entry) => [
+            entry.subjectName,
+            `<a href="${entry.googleSheetLink}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Buka Link</a>`
+        ];
+        const actions = {
+            edit: { fnName: 'editDaftarNilaiEntry', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+            delete: { fnName: 'confirmDeleteDaftarNilaiEntry', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+        };
 
         const contentHtml = `
             <div id="daftar-nilai-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">Mata Pelajaran</th>
-                                <th class="py-3 px-4 text-left">Link Google Sheet</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                </div>
+                ${renderGenericTable(headers, daftarNilai, rowMapper, actions)}
             </div>
         `;
         return contentHtml;
@@ -1600,22 +1402,16 @@ window.addEventListener('load', async () => {
 
     window.addDaftarNilaiEntry = () => {
         editingItem = null;
-        const formHtml = `
-            <input name="subjectName" placeholder="Nama Mata Pelajaran" class="w-full p-2 border rounded" required />
-            <input type="url" name="googleSheetLink" placeholder="Link Google Sheet" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Tambah Entri Daftar Nilai Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newEntry = {
-                subjectName: formData.get('subjectName'),
-                googleSheetLink: formData.get('googleSheetLink')
-            };
+        const fields = [
+            { name: "subjectName", label: "Nama Mata Pelajaran", type: "text", required: true },
+            { name: "googleSheetLink", label: "Link Google Sheet", type: "url", required: true }
+        ];
+        renderGenericForm("Tambah Entri Daftar Nilai Baru", fields, async (data) => {
             try {
-                await addDoc(getCollectionRef('grades'), newEntry);
+                await addDoc(getCollectionRef('grades'), data);
                 closeDataModal();
                 showMessage('Entri daftar nilai baru berhasil ditambahkan.', 'Berhasil');
-            }
-             catch (error) {
+            } catch (error) {
                 console.error("Error adding daftar nilai entry:", error);
                 showMessage(`Gagal menambahkan entri: ${error.message}`, 'Kesalahan');
             }
@@ -1626,25 +1422,20 @@ window.addEventListener('load', async () => {
         const entry = daftarNilai.find(e => e.id === entryId);
         if (!entry) return;
         editingItem = entry;
-        const formHtml = `
-            <input name="subjectName" placeholder="Nama Mata Pelajaran" value="${entry.subjectName}" class="w-full p-2 border rounded" required />
-            <input type="url" name="googleSheetLink" placeholder="Link Google Sheet" value="${entry.googleSheetLink}" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Ubah Entri Daftar Nilai", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedEntry = {
-                subjectName: formData.get('subjectName'),
-                googleSheetLink: formData.get('googleSheetLink')
-            };
+        const fields = [
+            { name: "subjectName", label: "Nama Mata Pelajaran", type: "text", required: true, value: entry.subjectName },
+            { name: "googleSheetLink", label: "Link Google Sheet", type: "url", required: true, value: entry.googleSheetLink }
+        ];
+        renderGenericForm("Ubah Entri Daftar Nilai", fields, async (data) => {
             try {
-                await updateDoc(getDocRef('grades', editingItem.id), updatedEntry);
+                await updateDoc(getDocRef('grades', editingItem.id), data);
                 closeDataModal();
                 showMessage('Entri daftar nilai berhasil diperbarui.', 'Berhasil');
             } catch (error) {
                 console.error("Error updating daftar nilai entry:", error);
                 showMessage(`Gagal memperbarui entri: ${error.message}`, 'Kesalahan');
             }
-        });
+        }, entry);
     };
 
     window.confirmDeleteDaftarNilaiEntry = (entryId) => {
@@ -1663,51 +1454,23 @@ window.addEventListener('load', async () => {
 
 
     function renderAsesmenContent() {
-        // Initialize listener for this data if not already done
         initializeAsesmenListener();
 
-        let rowsHtml = '';
-        if (asesmen.length > 0) {
-            asesmen.forEach(assessment => {
-                rowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${assessment.assessmentName}</td>
-                        <td class="py-3 px-4">${new Date(assessment.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                        <td class="py-3 px-4">${assessment.subject}</td>
-                        <td class="py-3 px-4">
-                            <a href="${assessment.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
-                                Buka Link
-                            </a>
-                        </td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editAssessment('${assessment.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteAssessment('${assessment.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            rowsHtml = `<tr><td colspan="5" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada data asesmen.</td></tr>`;
-        }
+        const headers = ['Nama Asesmen', 'Tanggal', 'Mata Pelajaran', 'Link'];
+        const rowMapper = (assessment) => [
+            assessment.assessmentName,
+            new Date(assessment.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
+            assessment.subject,
+            `<a href="${assessment.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Buka Link</a>`
+        ];
+        const actions = {
+            edit: { fnName: 'editAssessment', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+            delete: { fnName: 'confirmDeleteAssessment', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+        };
 
         const contentHtml = `
             <div id="asesmen-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">Nama Asesmen</th>
-                                <th class="py-3 px-4 text-left">Tanggal</th>
-                                <th class="py-3 px-4 text-left">Mata Pelajaran</th>
-                                <th class="py-3 px-4 text-left">Link</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                </div>
+                ${renderGenericTable(headers, asesmen, rowMapper, actions)}
             </div>
         `;
         return contentHtml;
@@ -1715,25 +1478,15 @@ window.addEventListener('load', async () => {
 
     window.addAssessment = () => {
         editingItem = null;
-        const formHtml = `
-            <input name="assessmentName" placeholder="Nama Asesmen" class="w-full p-2 border rounded" required />
-            <div>
-                <label for="date" class="block text-gray-700 text-sm font-bold mb-1">Tanggal</label>
-                <input type="date" name="date" id="date" class="w-full p-2 border rounded" required />
-            </div>
-            <input name="subject" placeholder="Mata Pelajaran" class="w-full p-2 border rounded" required />
-            <input type="url" name="link" placeholder="Link Asesmen (URL)" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Tambah Asesmen Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newAssessment = {
-                assessmentName: formData.get('assessmentName'),
-                date: formData.get('date'),
-                subject: formData.get('subject'),
-                link: formData.get('link')
-            };
+        const fields = [
+            { name: "assessmentName", label: "Nama Asesmen", type: "text", required: true },
+            { name: "date", label: "Tanggal", type: "date", required: true },
+            { name: "subject", label: "Mata Pelajaran", type: "text", required: true },
+            { name: "link", label: "Link Asesmen (URL)", type: "url", required: true }
+        ];
+        renderGenericForm("Tambah Asesmen Baru", fields, async (data) => {
             try {
-                await addDoc(getCollectionRef('assessments'), newAssessment);
+                await addDoc(getCollectionRef('assessments'), data);
                 closeDataModal();
                 showMessage('Asesmen baru berhasil ditambahkan.', 'Berhasil');
             } catch (error) {
@@ -1747,32 +1500,22 @@ window.addEventListener('load', async () => {
         const assessment = asesmen.find(a => a.id === assessmentId);
         if (!assessment) return;
         editingItem = assessment;
-        const formHtml = `
-            <input name="assessmentName" placeholder="Nama Asesmen" value="${assessment.assessmentName}" class="w-full p-2 border rounded" required />
-            <div>
-                <label for="date" class="block text-gray-700 text-sm font-bold mb-1">Tanggal</label>
-                <input type="date" name="date" id="date" value="${assessment.date}" class="w-full p-2 border rounded" required />
-            </div>
-            <input name="subject" placeholder="Mata Pelajaran" value="${assessment.subject}" class="w-full p-2 border rounded" required />
-            <input type="url" name="link" placeholder="Link Asesmen (URL)" value="${assessment.link}" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Ubah Asesmen", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedAssessment = {
-                assessmentName: formData.get('assessmentName'),
-                date: formData.get('date'),
-                subject: formData.get('subject'),
-                link: formData.get('link')
-            };
+        const fields = [
+            { name: "assessmentName", label: "Nama Asesmen", type: "text", required: true, value: assessment.assessmentName },
+            { name: "date", label: "Tanggal", type: "date", required: true, value: assessment.date },
+            { name: "subject", label: "Mata Pelajaran", type: "text", required: true, value: assessment.subject },
+            { name: "link", label: "Link Asesmen (URL)", type: "url", required: true, value: assessment.link }
+        ];
+        renderGenericForm("Ubah Asesmen", fields, async (data) => {
             try {
-                await updateDoc(getDocRef('assessments', editingItem.id), updatedAssessment);
+                await updateDoc(getDocRef('assessments', editingItem.id), data);
                 closeDataModal();
                 showMessage('Asesmen berhasil diperbarui.', 'Berhasil');
             } catch (error) {
                 console.error("Error updating assessment:", error);
                 showMessage(`Gagal memperbarui asesmen: ${error.message}`, 'Kesalahan');
             }
-        });
+        }, assessment);
     };
 
     window.confirmDeleteAssessment = (assessmentId) => {
@@ -1790,297 +1533,182 @@ window.addEventListener('load', async () => {
     };
 
 
-    function renderKaryaInovatifContent() {
-        // Initialize listener for this data if not already done
-        initializeKaryaInovatifListener();
+    // --- Removed renderKaryaInovatifContent ---
+    // function renderKaryaInovatifContent() {
+    //     initializeKaryaInovatifListener();
 
-        let rowsHtml = '';
-        if (karyaInovatif.length > 0) {
-            karyaInovatif.forEach(work => {
-                rowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${work.workTitle}</td>
-                        <td class="py-3 px-4">${work.description}</td>
-                        <td class="py-3 px-4">${work.year}</td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editKaryaInovatif('${work.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteKaryaInovatif('${work.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada data karya inovatif.</td></tr>`;
-        }
+    //     const headers = ['Judul Karya', 'Deskripsi', 'Tahun'];
+    //     const rowMapper = (work) => [work.workTitle, work.description, work.year];
+    //     const actions = {
+    //         edit: { fnName: 'editKaryaInovatif', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+    //         delete: { fnName: 'confirmDeleteKaryaInovatif', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+    //     };
 
-        const contentHtml = `
-            <div id="karya-inovatif-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">Judul Karya</th>
-                                <th class="py-3 px-4 text-left">Deskripsi</th>
-                                <th class="py-3 px-4 text-left">Tahun</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-        return contentHtml;
-    }
+    //     const contentHtml = `
+    //         <div id="karya-inovatif-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
+    //             ${renderGenericTable(headers, karyaInovatif, rowMapper, actions)}
+    //         </div>
+    //     `;
+    //     return contentHtml;
+    // }
 
-    window.addKaryaInovatif = () => {
-        editingItem = null;
-        const formHtml = `
-            <input name="workTitle" placeholder="Judul Karya" class="w-full p-2 border rounded" required />
-            <textarea name="description" placeholder="Deskripsi Karya" class="w-full p-2 border rounded" rows="3"></textarea>
-            <input name="year" placeholder="Tahun" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Tambah Karya Inovatif Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newWork = {
-                workTitle: formData.get('workTitle'),
-                description: formData.get('description'),
-                year: formData.get('year')
-            };
-            try {
-                await addDoc(getCollectionRef('innovative_works'), newWork);
-                closeDataModal();
-                showMessage('Karya inovatif baru berhasil ditambahkan.', 'Berhasil');
-            } catch (error) {
-                console.error("Error adding karya inovatif:", error);
-                showMessage(`Gagal menambahkan karya: ${error.message}`, 'Kesalahan');
-            }
-        });
-    };
+    // --- Removed addKaryaInovatif ---
+    // window.addKaryaInovatif = () => {
+    //     editingItem = null;
+    //     const fields = [
+    //         { name: "workTitle", label: "Judul Karya", type: "text", required: true },
+    //         { name: "description", label: "Deskripsi Karya", type: "textarea", rows: 3 },
+    //         { name: "year", label: "Tahun", type: "text", required: true }
+    //     ];
+    //     renderGenericForm("Tambah Karya Inovatif Baru", fields, async (data) => {
+    //         try {
+    //             await addDoc(getCollectionRef('innovative_works'), data);
+    //             closeDataModal();
+    //             showMessage('Karya inovatif baru berhasil ditambahkan.', 'Berhasil');
+    //         } catch (error) {
+    //             console.error("Error adding karya inovatif:", error);
+    //             showMessage(`Gagal menambahkan karya: ${error.message}`, 'Kesalahan');
+    //         }
+    //     });
+    // };
 
-    window.editKaryaInovatif = (workId) => {
-        const work = karyaInovatif.find(w => w.id === workId);
-        if (!work) return;
-        editingItem = work;
-        const formHtml = `
-            <input name="workTitle" placeholder="Judul Karya" value="${work.workTitle}" class="w-full p-2 border rounded" required />
-            <textarea name="description" placeholder="Deskripsi Karya" class="w-full p-2 border rounded" rows="3">${work.description}</textarea>
-            <input name="year" placeholder="Tahun" value="${work.year}" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Ubah Karya Inovatif", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedWork = {
-                workTitle: formData.get('workTitle'),
-                description: formData.get('description'),
-                year: formData.get('year')
-            };
-            try {
-                await updateDoc(getDocRef('innovative_works', editingItem.id), updatedWork);
-                closeDataModal();
-                showMessage('Karya inovatif berhasil diperbarui.', 'Berhasil');
-            } catch (error) {
-                console.error("Error updating karya inovatif:", error);
-                showMessage(`Gagal memperbarui karya: ${error.message}`, 'Kesalahan');
-            }
-        });
-    };
+    // --- Removed editKaryaInovatif ---
+    // window.editKaryaInovatif = (workId) => {
+    //     const work = karyaInovatif.find(w => w.id === workId);
+    //     if (!work) return;
+    //     editingItem = work;
+    //     const fields = [
+    //         { name: "workTitle", label: "Judul Karya", type: "text", required: true, value: work.workTitle },
+    //         { name: "description", label: "Deskripsi Karya", type: "textarea", rows: 3, value: work.description },
+    //         { name: "year", label: "Tahun", type: "text", required: true, value: work.year }
+    //     ];
+    //     renderGenericForm("Ubah Karya Inovatif", fields, async (data) => {
+    //         try {
+    //             await updateDoc(getDocRef('innovative_works', editingItem.id), data);
+    //             closeDataModal();
+    //             showMessage('Karya inovatif berhasil diperbarui.', 'Berhasil');
+    //         } catch (error) {
+    //             console.error("Error updating karya inovatif:", error);
+    //             showMessage(`Gagal memperbarui karya: ${error.message}`, 'Kesalahan');
+    //         }
+    //     }, work);
+    // };
 
-    window.confirmDeleteKaryaInovatif = (workId) => {
-        itemToDelete = workId;
-        showConfirmDeleteModal("Apakah Anda yakin ingin menghapus karya inovatif ini?", async () => {
-            try {
-                await deleteDoc(getDocRef('innovative_works', itemToDelete));
-                closeConfirmDeleteModal();
-                showMessage('Karya inovatif berhasil dihapus.', 'Berhasil');
-            } catch (error) {
-                console.error("Error deleting karya inovatif:", error);
-                showMessage(`Gagal menghapus karya: ${error.message}`, 'Kesalahan');
-            }
-        });
-    };
+    // --- Removed confirmDeleteKaryaInovatif ---
+    // window.confirmDeleteKaryaInovatif = (workId) => {
+    //     itemToDelete = workId;
+    //     showConfirmDeleteModal("Apakah Anda yakin ingin menghapus karya inovatif ini?", async () => {
+    //         try {
+    //             await deleteDoc(getDocRef('innovative_works', itemToDelete));
+    //             closeConfirmDeleteModal();
+    //             showMessage('Karya inovatif berhasil dihapus.', 'Berhasil');
+    //         } catch (error) {
+    //             console.error("Error deleting karya inovatif:", error);
+    //             showMessage(`Gagal menghapus karya: ${error.message}`, 'Kesalahan');
+    //         }
+    //     });
+    // };
 
 
-    function renderProgramKerjaGuruContent() {
-        // Initialize listener for this data if not already done
-        initializeProgramKerjaGuruListener();
+    // --- Removed renderProgramKerjaGuruContent ---
+    // function renderProgramKerjaGuruContent() {
+    //     initializeProgramKerjaGuruListener();
 
-        let rowsHtml = '';
-        if (programKerjaGuru.length > 0) {
-            programKerjaGuru.forEach(program => {
-                const statusClass =
-                    program.status === 'Berjalan' ? 'bg-blue-100 text-blue-800' :
-                    program.status === 'Selesai' ? 'bg-green-100 text-green-800' :
-                    'bg-yellow-100 text-yellow-800';
-                rowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${program.programName}</td>
-                        <td class="py-3 px-4">${program.description}</td>
-                        <td class="py-3 px-4">
-                            <span class="px-2 py-1 rounded-full text-xs font-semibold ${statusClass}">
-                                ${program.status}
-                            </span>
-                       </td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editProgramKerjaGuru('${program.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteProgramKerjaGuru('${program.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada program kerja guru.</td></tr>`;
-        }
+    //     const headers = ['Nama Program', 'Deskripsi'];
+    //     const rowMapper = (program) => [program.programName, program.description];
+    //     const actions = {
+    //         edit: { fnName: 'editProgramKerjaGuru', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+    //         delete: { fnName: 'confirmDeleteProgramKerjaGuru', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+    //     };
+    //     const statusClassMapper = (status) => {
+    //         if (status === 'Berjalan') return 'bg-blue-100 text-blue-800';
+    //         if (status === 'Selesai') return 'bg-green-100 text-green-800';
+    //         return 'bg-yellow-100 text-yellow-800';
+    //     };
 
-        const contentHtml = `
-            <div id="program-kerja-guru-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">Nama Program</th>
-                                <th class="py-3 px-4 text-left">Deskripsi</th>
-                                <th class="py-3 px-4 text-left">Status</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        `;
-        return contentHtml;
-    }
+    //     const contentHtml = `
+    //         <div id="program-kerja-guru-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
+    //             ${renderGenericTable(headers, programKerjaGuru, rowMapper, actions, { statusField: 'status', statusClassMapper: statusClassMapper })}
+    //         </div>
+    //     `;
+    //     return contentHtml;
+    // }
 
-    window.addProgramKerjaGuru = () => {
-        editingItem = null;
-        const formHtml = `
-            <input name="programName" placeholder="Nama Program" class="w-full p-2 border rounded" required />
-            <textarea name="description" placeholder="Deskripsi Program" class="w-full p-2 border rounded" rows="3"></textarea>
-            <div>
-                <label for="status" class="block text-gray-700 text-sm font-bold mb-1">Status</label>
-                <select name="status" id="status" class="w-full p-2 border rounded" required>
-                    <option value="">Pilih Status</option>
-                    <option value="Berjalan">Berjalan</option>
-                    <option value="Selesai">Selesai</option>
-                    <option value="Belum Dimulai">Belum Dimulai</option>
-                </select>
-            </div>
-        `;
-        showDataModal("Tambah Program Kerja Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newProgram = {
-                programName: formData.get('programName'),
-                description: formData.get('description'),
-                status: formData.get('status')
-            };
-            try {
-                await addDoc(getCollectionRef('teacher_programs'), newProgram);
-                closeDataModal();
-                showMessage('Program kerja baru berhasil ditambahkan.', 'Berhasil');
-            } catch (error) {
-                console.error("Error adding program kerja guru:", error);
-                showMessage(`Gagal menambahkan program kerja: ${error.message}`, 'Kesalahan');
-            }
-        });
-    };
+    // --- Removed addProgramKerjaGuru ---
+    // window.addProgramKerjaGuru = () => {
+    //     editingItem = null;
+    //     const fields = [
+    //         { name: "programName", label: "Nama Program", type: "text", required: true },
+    //         { name: "description", label: "Deskripsi Program", type: "textarea", rows: 3 },
+    //         { name: "status", label: "Status", type: "select", required: true, placeholder: "Pilih Status", options: [{ value: "Berjalan", text: "Berjalan" }, { value: "Selesai", text: "Selesai" }, { value: "Belum Dimulai", text: "Belum Dimulai" }] }
+    //     ];
+    //     renderGenericForm("Tambah Program Kerja Baru", fields, async (data) => {
+    //         try {
+    //             await addDoc(getCollectionRef('teacher_programs'), data);
+    //             closeDataModal();
+    //             showMessage('Program kerja baru berhasil ditambahkan.', 'Berhasil');
+    //         } catch (error) {
+    //             console.error("Error adding program kerja guru:", error);
+    //             showMessage(`Gagal menambahkan program kerja: ${error.message}`, 'Kesalahan');
+    //         }
+    //     });
+    // };
 
-    window.editProgramKerjaGuru = (programId) => {
-        const program = programKerjaGuru.find(p => p.id === programId);
-        if (!program) return;
-        editingItem = program;
-        const formHtml = `
-            <input name="programName" placeholder="Nama Program" value="${program.programName}" class="w-full p-2 border rounded" required />
-            <textarea name="description" placeholder="Deskripsi Program" class="w-full p-2 border rounded" rows="3">${program.description}</textarea>
-            <div>
-                <label for="status" class="block text-gray-700 text-sm font-bold mb-1">Status</label>
-                <select name="status" id="status" class="w-full p-2 border rounded" required>
-                    <option value="">Pilih Status</option>
-                    <option value="Berjalan" ${program.status === 'Berjalan' ? 'selected' : ''}>Berjalan</option>
-                    <option value="Selesai" ${program.status === 'Selesai' ? 'selected' : ''}>Selesai</option>
-                    <option value="Belum Dimulai" ${program.status === 'Belum Dimulai' ? 'selected' : ''}>Belum Dimulai</option>
-                </select>
-            </div>
-        `;
-        showDataModal("Ubah Program Kerja", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedProgram = {
-                programName: formData.get('programName'),
-                description: formData.get('description'),
-                status: formData.get('status')
-            };
-            try {
-                await updateDoc(getDocRef('teacher_programs', editingItem.id), updatedProgram);
-                closeDataModal();
-                showMessage('Program kerja berhasil diperbarui.', 'Berhasil');
-            } catch (error) {
-                console.error("Error updating program kerja guru:", error);
-                showMessage(`Gagal memperbarui program kerja: ${error.message}`, 'Kesalahan');
-            }
-        });
-    };
+    // --- Removed editProgramKerjaGuru ---
+    // window.editProgramKerjaGuru = (programId) => {
+    //     const program = programKerjaGuru.find(p => p.id === programId);
+    //     if (!program) return;
+    //     editingItem = program;
+    //     const fields = [
+    //         { name: "programName", label: "Nama Program", type: "text", required: true, value: program.programName },
+    //         { name: "description", label: "Deskripsi Program", type: "textarea", rows: 3, value: program.description },
+    //         { name: "status", label: "Status", type: "select", required: true, placeholder: "Pilih Status", options: [{ value: "Berjalan", text: "Berjalan" }, { value: "Selesai", text: "Selesai" }, { value: "Belum Dimulai", text: "Belum Dimulai" }], value: program.status }
+    //     ];
+    //     renderGenericForm("Ubah Program Kerja", fields, async (data) => {
+    //         try {
+    //             await updateDoc(getDocRef('teacher_programs', editingItem.id), data);
+    //             closeDataModal();
+    //             showMessage('Program kerja berhasil diperbarui.', 'Berhasil');
+    //         } catch (error) {
+    //             console.error("Error updating program kerja guru:", error);
+    //             showMessage(`Gagal memperbarui program kerja: ${error.message}`, 'Kesalahan');
+    //         }
+    //     });
+    // };
 
-    window.confirmDeleteProgramKerjaGuru = (programId) => {
-        itemToDelete = programId;
-        showConfirmDeleteModal("Apakah Anda yakin ingin menghapus program kerja ini?", async () => {
-            try {
-                await deleteDoc(getDocRef('teacher_programs', itemToDelete));
-                closeConfirmDeleteModal();
-                showMessage('Program kerja berhasil dihapus.', 'Berhasil');
-            } catch (error) {
-                console.error("Error deleting program kerja guru:", error);
-                showMessage(`Gagal menghapus program kerja: ${error.message}`, 'Kesalahan');
-            }
-        });
-    };
+    // --- Removed confirmDeleteProgramKerjaGuru ---
+    // window.confirmDeleteProgramKerjaGuru = (programId) => {
+    //     itemToDelete = programId;
+    //     showConfirmDeleteModal("Apakah Anda yakin ingin menghapus program kerja ini?", async () => {
+    //         try {
+    //             await deleteDoc(getDocRef('teacher_programs', itemToDelete));
+    //             closeConfirmDeleteModal();
+    //             showMessage('Program kerja berhasil dihapus.', 'Berhasil');
+    //         } catch (error) {
+    //             console.error("Error deleting program kerja guru:", error);
+    //             showMessage(`Gagal menghapus program kerja: ${error.message}`, 'Kesalahan');
+    //         }
+    //     });
+    // };
 
 
     function renderModulAjarContent() {
-        // Initialize listener for this data if not already done
         initializeModulAjarListener();
 
-        let rowsHtml = '';
-        if (modulAjar.length > 0) {
-            modulAjar.forEach(module => {
-                rowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${module.title}</td>
-                        <td class="py-3 px-4">
-                            <a href="${module.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">
-                                Buka Link
-                            </a>
-                        </td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editModulAjar('${module.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="downloadSingleModulAjar('${module.id}')" class="text-blue-600 hover:text-blue-800"> <i data-lucide="download" class="lucide lucide-download" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteModulAjar('${module.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            rowsHtml = `<tr><td colspan="3" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada modul ajar.</td></tr>`;
-        }
+        const headers = ['Judul Modul', 'Link'];
+        const rowMapper = (module) => [
+            module.title,
+            `<a href="${module.link}" target="_blank" rel="noopener noreferrer" class="text-blue-600 hover:underline">Buka Link</a>`
+        ];
+        const actions = {
+            edit: { fnName: 'editModulAjar', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+            download: { fnName: 'downloadSingleModulAjar', icon: 'download', class: 'text-blue-600 hover:text-blue-800' },
+            delete: { fnName: 'confirmDeleteModulAjar', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+        };
 
         const contentHtml = `
             <div id="modul-ajar-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">Judul Modul</th>
-                                <th class="py-3 px-4 text-left">Link</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                </div>
+                ${renderGenericTable(headers, modulAjar, rowMapper, actions)}
             </div>
         `;
         return contentHtml;
@@ -2088,18 +1716,13 @@ window.addEventListener('load', async () => {
 
     window.addModulAjar = () => {
         editingItem = null;
-        const formHtml = `
-            <input name="title" placeholder="Judul Modul" class="w-full p-2 border rounded" required />
-            <input type="url" name="link" placeholder="Link Modul (URL)" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Tambah Modul Ajar Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newModule = {
-                title: formData.get('title'),
-                link: formData.get('link')
-            };
+        const fields = [
+            { name: "title", label: "Judul Modul", type: "text", required: true },
+            { name: "link", label: "Link Modul (URL)", type: "url", required: true }
+        ];
+        renderGenericForm("Tambah Modul Ajar Baru", fields, async (data) => {
             try {
-                await addDoc(getCollectionRef('teaching_modules'), newModule);
+                await addDoc(getCollectionRef('teaching_modules'), data);
                 closeDataModal();
                 showMessage('Modul ajar baru berhasil ditambahkan.', 'Berhasil');
             } catch (error) {
@@ -2113,25 +1736,20 @@ window.addEventListener('load', async () => {
         const module = modulAjar.find(m => m.id === moduleId);
         if (!module) return;
         editingItem = module;
-        const formHtml = `
-            <input name="title" placeholder="Judul Modul" value="${module.title}" class="w-full p-2 border rounded" required />
-            <input type="url" name="link" placeholder="Link Modul (URL)" value="${module.link}" class="w-full p-2 border rounded" required />
-        `;
-        showDataModal("Ubah Modul Ajar", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedModule = {
-                title: formData.get('title'),
-                link: formData.get('link')
-            };
+        const fields = [
+            { name: "title", label: "Judul Modul", type: "text", required: true, value: module.title },
+            { name: "link", label: "Link Modul (URL)", type: "url", required: true, value: module.link }
+        ];
+        renderGenericForm("Ubah Modul Ajar", fields, async (data) => {
             try {
-                await updateDoc(getDocRef('teaching_modules', editingItem.id), updatedModule);
+                await updateDoc(getDocRef('teaching_modules', editingItem.id), data);
                 closeDataModal();
                 showMessage('Modul ajar berhasil diperbarui.', 'Berhasil');
             } catch (error) {
                 console.error("Error updating modul ajar:", error);
                 showMessage(`Gagal memperbarui modul ajar: ${error.message}`, 'Kesalahan');
             }
-        });
+        }, module);
     };
 
     window.confirmDeleteModulAjar = (moduleId) => {
@@ -2150,45 +1768,22 @@ window.addEventListener('load', async () => {
 
 
     function renderRiwayatPelatihanContent() {
-        // Initialize listener for this data if not already done
         initializeRiwayatPelatihanListener();
 
-        let rowsHtml = '';
-        if (riwayatPelatihan.length > 0) {
-            riwayatPelatihan.forEach(training => {
-                rowsHtml += `
-                    <tr class="border-b hover:bg-gray-50">
-                        <td class="py-3 px-4">${training.topic}</td>
-                        <td class="py-3 px-4">${training.organizer}</td>
-                        <td class="py-3 px-4">${new Date(training.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
-                        <td class="py-3 px-4 flex gap-2">
-                            <button onclick="editRiwayatPelatihan('${training.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
-                            <button onclick="confirmDeleteRiwayatPelatihan('${training.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
-                        </td>
-                    </tr>
-                `;
-            });
-        } else {
-            rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada riwayat pelatihan.</td></tr>`;
-        }
+        const headers = ['Topik', 'Penyelenggara', 'Tanggal'];
+        const rowMapper = (training) => [
+            training.topic,
+            training.organizer,
+            new Date(training.date).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })
+        ];
+        const actions = {
+            edit: { fnName: 'editRiwayatPelatihan', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
+            delete: { fnName: 'confirmDeleteRiwayatPelatihan', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
+        };
 
         const contentHtml = `
             <div id="riwayat-pelatihan-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                <div class="overflow-x-auto">
-                    <table class="min-w-full bg-white">
-                        <thead>
-                            <tr class="bg-blue-100 text-blue-800">
-                                <th class="py-3 px-4 text-left">Topik</th>
-                                <th class="py-3 px-4 text-left">Penyelenggara</th>
-                                <th class="py-3 px-4 text-left">Tanggal</th>
-                                <th class="py-3 px-4 text-left w-24">Aksi</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            ${rowsHtml}
-                        </tbody>
-                    </table>
-                </div>
+                ${renderGenericTable(headers, riwayatPelatihan, rowMapper, actions)}
             </div>
         `;
         return contentHtml;
@@ -2196,23 +1791,14 @@ window.addEventListener('load', async () => {
 
     window.addRiwayatPelatihan = () => {
         editingItem = null;
-        const formHtml = `
-            <input name="topic" placeholder="Topik Pelatihan" class="w-full p-2 border rounded" required />
-            <input name="organizer" placeholder="Penyelenggara" class="w-full p-2 border rounded" required />
-            <div>
-                <label for="date" class="block text-gray-700 text-sm font-bold mb-1">Tanggal</label>
-                <input type="date" name="date" id="date" class="w-full p-2 border rounded" required />
-            </div>
-        `;
-        showDataModal("Tambah Riwayat Pelatihan Baru", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const newTraining = {
-                topic: formData.get('topic'),
-                organizer: formData.get('organizer'),
-                date: formData.get('date')
-            };
+        const fields = [
+            { name: "topic", label: "Topik Pelatihan", type: "text", required: true },
+            { name: "organizer", label: "Penyelenggara", type: "text", required: true },
+            { name: "date", label: "Tanggal", type: "date", required: true }
+        ];
+        renderGenericForm("Tambah Riwayat Pelatihan Baru", fields, async (data) => {
             try {
-                await addDoc(getCollectionRef('trainings'), newTraining);
+                await addDoc(getCollectionRef('trainings'), data);
                 closeDataModal();
                 showMessage('Riwayat pelatihan baru berhasil ditambahkan.', 'Berhasil');
             } catch (error) {
@@ -2226,30 +1812,21 @@ window.addEventListener('load', async () => {
         const training = riwayatPelatihan.find(t => t.id === trainingId);
         if (!training) return;
         editingItem = training;
-        const formHtml = `
-            <input name="topic" placeholder="Topik Pelatihan" value="${training.topic}" class="w-full p-2 border rounded" required />
-            <input name="organizer" placeholder="Penyelenggara" value="${training.organizer}" class="w-full p-2 border rounded" required />
-            <div>
-                <label for="date" class="block text-gray-700 text-sm font-bold mb-1">Tanggal</label>
-                <input type="date" name="date" id="date" value="${training.date}" class="w-full p-2 border rounded" required />
-            </div>
-        `;
-        showDataModal("Ubah Riwayat Pelatihan", formHtml, async (formElement) => {
-            const formData = new FormData(formElement);
-            const updatedTraining = {
-                topic: formData.get('topic'),
-                organizer: formData.get('organizer'),
-                date: formData.get('date')
-            };
+        const fields = [
+            { name: "topic", label: "Topik Pelatihan", type: "text", required: true, value: training.topic },
+            { name: "organizer", label: "Penyelenggara", type: "text", required: true, value: training.organizer },
+            { name: "date", label: "Tanggal", type: "date", required: true, value: training.date }
+        ];
+        renderGenericForm("Ubah Riwayat Pelatihan", fields, async (data) => {
             try {
-                await updateDoc(getDocRef('trainings', editingItem.id), updatedTraining);
+                await updateDoc(getDocRef('trainings', editingItem.id), data);
                 closeDataModal();
                 showMessage('Riwayat pelatihan berhasil diperbarui.', 'Berhasil');
             } catch (error) {
                 console.error("Error updating training:", error);
                 showMessage(`Gagal memperbarui pelatihan: ${error.message}`, 'Kesalahan');
             }
-        });
+        }, training);
     };
 
     window.confirmDeleteRiwayatPelatihan = (trainingId) => {
@@ -2276,8 +1853,9 @@ window.addEventListener('load', async () => {
             { title: "Kalender Pendidikan", icon: "calendar", menu: "Kalender Pendidikan", bgColor: "bg-violet-500" },
             { title: "Daftar Nilai", icon: "clipboard-list", menu: "Daftar Nilai", bgColor: "bg-sky-500" },
             { title: "Asesmen", icon: "target", menu: "Asesmen", bgColor: "bg-lime-500" },
-            { title: "Karya Inovatif", icon: "brain-circuit", menu: "Karya Inovatif", bgColor: "bg-orange-500" },
-            { title: "Program Kerja Guru", icon: "award", menu: "Program Kerja Guru", bgColor: "bg-cyan-500" },
+            // --- Removed Karya Inovatif and Program Kerja Guru from Dashboard ---
+            // { title: "Karya Inovatif", icon: "brain-circuit", menu: "Karya Inovatif", bgColor: "bg-orange-500" },
+            // { title: "Program Kerja Guru", icon: "award", menu: "Program Kerja Guru", bgColor: "bg-cyan-500" },
             { title: "Modul Ajar", icon: "book", menu: "Modul Ajar", bgColor: "bg-indigo-500" },
             { title: "Riwayat Pelatihan", icon: "graduation-cap", menu: "Riwayat Pelatihan", bgColor: "bg-purple-500" },
         ];
@@ -2376,20 +1954,21 @@ window.addEventListener('load', async () => {
                 headerOnAdd = 'addAssessment()';
                 contentHtml = renderAsesmenContent();
                 break;
-            case 'Karya Inovatif':
-                headerTitle = "Karya Inovatif";
-                headerIconHtml = '<i data-lucide="brain-circuit" style="width: 24px; height: 24px;"></i>';
-                headerOnBack = 'Dashboard';
-                headerOnAdd = 'addKaryaInovatif()';
-                contentHtml = renderKaryaInovatifContent();
-                break;
-            case 'Program Kerja Guru':
-                headerTitle = "Program Kerja Guru";
-                headerIconHtml = '<i data-lucide="award" style="width: 24px; height: 24px;"></i>';
-                headerOnBack = 'Dashboard';
-                headerOnAdd = 'addProgramKerjaGuru()';
-                contentHtml = renderProgramKerjaGuruContent();
-                break;
+            // --- Removed Karya Inovatif and Program Kerja Guru from switch cases ---
+            // case 'Karya Inovatif':
+            //     headerTitle = "Karya Inovatif";
+            //     headerIconHtml = '<i data-lucide="brain-circuit" style="width: 24px; height: 24px;"></i>';
+            //     headerOnBack = 'Dashboard';
+            //     headerOnAdd = 'addKaryaInovatif()';
+            //     contentHtml = renderKaryaInovatifContent();
+            //     break;
+            // case 'Program Kerja Guru':
+            //     headerTitle = "Program Kerja Guru";
+            //     headerIconHtml = '<i data-lucide="award" style="width: 24px; height: 24px;"></i>';
+            //     headerOnBack = 'Dashboard';
+            //     headerOnAdd = 'addProgramKerjaGuru()';
+            //     contentHtml = renderProgramKerjaGuruContent();
+            //     break;
             case 'Modul Ajar':
                 headerTitle = "Modul Ajar";
                 headerIconHtml = '<i data-lucide="book" style="width: 24px; height: 24px;"></i>';
@@ -2485,8 +2064,9 @@ window.addEventListener('load', async () => {
             kalenderPendidikanLoaded = false;
             daftarNilaiLoaded = false;
             asesmenLoaded = false;
-            karyaInovatifLoaded = false;
-            programKerjaGuruLoaded = false;
+            // --- Removed Reset flags for karyaInovatif and programKerjaGuru ---
+            // karyaInovatifLoaded = false;
+            // programKerjaGuruLoaded = false;
             modulAjarLoaded = false;
             riwayatPelatihanLoaded = false;
 
@@ -2498,8 +2078,9 @@ window.addEventListener('load', async () => {
             kalenderPendidikan = [];
             daftarNilai = [];
             asesmen = [];
-            karyaInovatif = [];
-            programKerjaGuru = [];
+            // --- Removed Clear data states for karyaInovatif and programKerjaGuru ---
+            // karyaInovatif = [];
+            // programKerjaGuru = [];
             modulAjar = [];
             riwayatPelatihan = [];
 

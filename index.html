@@ -13,6 +13,7 @@
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js";
         import { getAuth, signInAnonymously, signInWithCustomToken, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js";
         import { getFirestore, doc, getDoc, addDoc, setDoc, updateDoc, deleteDoc, onSnapshot, collection, query, where, getDocs, orderBy } from "https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js";
+        // Firebase Storage imports REMOVED as we are using Base64 directly in Firestore
 
         // Variabel global yang disediakan oleh lingkungan Canvas
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
@@ -23,11 +24,13 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        // const storage = getStorage(app); // Firebase Storage initialization REMOVED
 
         // Export Firebase instances and functions to global scope for use in the main script
         window.firebaseApp = app;
         window.firebaseDb = db;
         window.firebaseAuth = auth;
+        // window.firebaseStorage = storage; // Export storage REMOVED
         window.signInAnonymously = signInAnonymously;
         window.signInWithCustomToken = signInWithCustomToken;
         window.onAuthStateChanged = onAuthStateChanged;
@@ -46,6 +49,10 @@
         window.orderBy = orderBy;
         window.appId = appId;
         window.initialAuthToken = initialAuthToken;
+        // window.ref = ref; // Export ref for storage operations REMOVED
+        // window.uploadBytes = uploadBytes; // Export uploadBytes for storage operations REMOVED
+        // window.getDownloadURL = getDownloadURL; // Export getDownloadURL for storage operations REMOVED
+        // window.deleteObject = deleteObject; // Export deleteObject for storage operations REMOVED
     </script>
     <!-- jsPDF and html2canvas CDN -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
@@ -111,11 +118,14 @@
     <div id="app-container" class="flex-1 flex flex-col">
         <!-- Header -->
         <header class="bg-white/80 backdrop-blur-sm shadow-sm p-4 flex justify-between items-center sticky top-0 z-10 rounded-b-lg">
-            <div class="text-xl font-bold text-blue-600">Admin KELAS 5</div>
+            <div>
+                <div class="text-xl font-bold text-blue-600">Admin KELAS 5</div>
+                <p class="text-xs text-gray-400 -mt-1">developed by Cikgu Tere</p>
+            </div>
             <div class="flex items-center">
                 <span id="guru-name" class="text-gray-700 mr-3 hidden sm:inline"></span>
                 <img id="guru-photo" src="" alt="Foto Profil" class="w-10 h-10 rounded-full mr-4 cursor-pointer object-cover border-2 border-blue-200" />
-                <span id="user-id-display" class="text-gray-500 text-sm mr-4 truncate" title="User ID"></span>
+                <!-- User ID display removed -->
                 <button id="logout-button" class="text-gray-500 hover:text-red-500 transition-colors">
                     <i data-lucide="log-out" class="lucide lucide-log-out" style="width: 24px; height: 24px;"></i>
                 </button>
@@ -282,7 +292,7 @@
             let isLoggedIn = false;
             let activeMenu = 'Dashboard';
             let userId = null;
-            let db, auth; // Firebase instances
+            let db, auth; // Firebase instances, storage is removed
 
             // Data state (will be populated from Firestore)
             let guruProfile = { ...initialGuruProfile };
@@ -313,7 +323,6 @@
             const mainContent = document.getElementById('main-content');
             const guruNameSpan = document.getElementById('guru-name');
             const guruPhotoImg = document.getElementById('guru-photo');
-            const userIdDisplay = document.getElementById('user-id-display');
             const logoutButton = document.getElementById('logout-button');
             const loginPage = document.getElementById('login-page');
             const loginButton = document.getElementById('login-button');
@@ -341,9 +350,10 @@
             // Wait for Firebase to be globally available
             await new Promise(resolve => {
                 const checkFirebase = setInterval(() => {
-                    if (window.firebaseApp && window.firebaseDb && window.firebaseAuth) {
+                    if (window.firebaseApp && window.firebaseDb && window.firebaseAuth) { // Removed firebaseStorage check
                         db = window.firebaseDb;
                         auth = window.firebaseAuth;
+                        // storage = window.firebaseStorage; // Removed storage assignment
                         clearInterval(checkFirebase);
                         resolve();
                     }
@@ -387,6 +397,16 @@
                     return null;
                 }
                 return window.doc(db, `artifacts/${window.appId}/users/${userId}/${collectionName}`, docId);
+            }
+
+            // --- Base64 Photo Handling (replaces Firebase Storage logic) ---
+            async function convertFileToBase64(file) {
+                return new Promise((resolve, reject) => {
+                    const reader = new FileReader();
+                    reader.onloadend = () => resolve(reader.result);
+                    reader.onerror = reject;
+                    reader.readAsDataURL(file);
+                });
             }
 
             // --- Fetch all data from Firestore ---
@@ -719,7 +739,7 @@
 
             // --- Komponen Tampilan Konten (sebagai fungsi yang mengembalikan string HTML) ---
 
-            function renderProfilGuru() {
+            function renderProfilGuruContent() {
                 let photoPreviewHtml = guruProfile.photo ? `
                     <div class="mt-4 flex items-center gap-4 p-2 border rounded-lg bg-gray-50">
                         <img id="modal-preview-photo" src="${guruProfile.photo}" onerror="this.onerror=null; this.src='https://placehold.co/128x128/E0E7FF/4F46E5?text=Gagal+Muat';" alt="Pratinjau Foto" class="w-20 h-20 rounded-full object-cover shadow-sm border border-gray-200" />
@@ -734,23 +754,41 @@
                     <input name="nip" placeholder="NIP" value="${guruProfile.nip}" class="w-full p-2 border rounded" required />
                     <input name="email" type="email" placeholder="Email" value="${guruProfile.email}" class="w-full p-2 border rounded" required />
                     <input name="whatsapp" placeholder="Nomor Whatsapp" value="${guruProfile.whatsapp}" class="w-full p-2 border rounded" />
-                    <label for="photoFile" class="block text-gray-700 text-sm font-bold mb-1">Unggah Foto Profil (Tidak didukung di Firestore. Akan diganti dengan placeholder).</label>
+                    <label for="photoFile" class="block text-gray-700 text-sm font-bold mb-1">Unggah Foto Profil (Ukuran Max 100KB - untuk performa)</label>
                     <input type="file" id="photoFile" name="photoFile" accept="image/*" class="w-full p-2 border rounded file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100" />
                     ${photoPreviewHtml}
                 `;
 
                 const handleSaveProfile = async (formElement) => {
                     const formData = new FormData(formElement);
-
-                    // For image upload, Firestore document has 1MB limit. Storing base64 is not recommended.
-                    // For simplicity, we'll indicate it's not directly stored in Firestore documents
-                    // and use a placeholder URL if a file is attempted to be uploaded.
                     const photoFile = formData.get('photoFile');
-                    let newPhotoUrl = guruProfile.photo;
+                    let newPhotoUrl = guruProfile.photo; // Default to current photo
+
                     if (photoFile && photoFile.size > 0) {
-                         showMessage('Unggahan foto langsung ke Firestore tidak didukung. Menggunakan placeholder.', 'Info');
-                         newPhotoUrl = 'https://placehold.co/128x128/E0E7FF/4F46E5?text=Foto'; // Fallback placeholder
+                        const MAX_FILE_SIZE_BYTES = 100 * 1024; // 100 KB for Base64 in Firestore
+                        if (photoFile.size > MAX_FILE_SIZE_BYTES) {
+                            showMessage(`Ukuran file foto maksimum adalah ${MAX_FILE_SIZE_BYTES / 1024} KB.`, 'Ukuran File Terlalu Besar');
+                            return;
+                        }
+                        loadingOverlay.style.display = 'flex'; // Tampilkan loading
+                        try {
+                            const base64Image = await convertFileToBase64(photoFile);
+                            newPhotoUrl = base64Image;
+                        } catch (error) {
+                            console.error("Error converting image to Base64:", error);
+                            showMessage(`Gagal memproses foto: ${error.message}`, 'Kesalahan Pemrosesan');
+                            loadingOverlay.style.display = 'none'; // Sembunyikan loading
+                            return;
+                        } finally {
+                            loadingOverlay.style.display = 'none'; // Sembunyikan loading
+                        }
+                    } else if (photoFile && photoFile.size === 0) {
+                         // This case handles when a file input is cleared but no new file is chosen.
+                         // The logic for clearing the photo to placeholder is already handled by clear-photo-button.
+                         // So, if it's just an empty file input and no explicit clear, keep the old photo.
+                         newPhotoUrl = guruProfile.photo;
                     }
+
 
                     const updatedProfile = {
                         name: formData.get('name'),
@@ -767,12 +805,12 @@
                         showMessage('Profil guru berhasil diperbarui.', 'Berhasil');
                     } catch (error) {
                         console.error("Error updating guru profile:", error);
-                        showMessage(`Gagal memperbarui profil guru: ${error.message}`, 'Kesalahan');
+                        showMessage(`Gagal memperbarui profil guru: ${error.message}. Coba gunakan foto dengan ukuran lebih kecil.`, 'Kesalahan');
                     }
                 };
 
-                const html = `
-                    ${renderHeader("Profil Guru", '<i data-lucide="user-circle" class="lucide lucide-user-circle" style="width: 24px; height: 24px;"></i>', 'Dashboard', null, true)}
+                // Returns the HTML string for the profile content
+                const contentHtml = `
                     <div id="profile-print-area" class="bg-white p-8 rounded-lg shadow-md flex flex-col md:flex-row items-center gap-8 print-area">
                         <div class="flex-shrink-0">
                             <img src="${guruProfile.photo}" onerror="this.onerror=null; this.src='https://placehold.co/128x128/E0E7FF/4F46E5?text=Gagal+Muat';" alt="Foto Profil Guru" class="w-32 h-32 rounded-full object-cover shadow-lg border-4 border-blue-200" />
@@ -788,66 +826,65 @@
                         <button id="edit-profile-button" class="mt-4 md:mt-0 bg-yellow-500 hover:bg-yellow-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm flex items-center"> <i data-lucide="edit" class="lucide lucide-edit mr-2" style="width: 18px; height: 18px;"></i> Ubah Profil </button>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
 
-                document.getElementById('guru-name').textContent = guruProfile.name;
-                document.getElementById('guru-photo').src = guruProfile.photo;
-                document.getElementById('guru-photo').onerror = function() { this.onerror=null; this.src='https://placehold.co/40x40/E0E7FF/4F46E5?text=G'; };
-                document.getElementById('guru-photo').onclick = () => setActiveMenu('Profil Guru');
-
-
-                const editButton = document.getElementById('edit-profile-button');
-                if (editButton) {
-                    editButton.onclick = () => {
-                        showDataModal("Ubah Profil Guru", formHtml, handleSaveProfile);
-                        const photoFileInput = document.getElementById('photoFile');
-                        if (photoFileInput) {
-                            photoFileInput.onchange = (e) => {
-                                const file = e.target.files[0];
-                                if (file) {
-                                    if (file.size > 1 * 1024 * 1024) {
-                                        showMessage('Ukuran file maksimum adalah 1 MB.', 'Ukuran File Terlalu Besar');
-                                        e.target.value = '';
-                                        return;
-                                    }
-                                    const reader = new FileReader();
-                                    reader.onloadend = () => {
+                // After rendering, attach event listeners
+                setTimeout(() => { // Use setTimeout to ensure elements are in DOM
+                    const editButton = document.getElementById('edit-profile-button');
+                    if (editButton) {
+                        editButton.onclick = () => {
+                            showDataModal("Ubah Profil Guru", formHtml, handleSaveProfile);
+                            const photoFileInput = document.getElementById('photoFile');
+                            if (photoFileInput) {
+                                photoFileInput.onchange = (e) => {
+                                    const file = e.target.files[0];
+                                    if (file) {
+                                        const MAX_FILE_SIZE_BYTES = 100 * 1024; // 100 KB
+                                        if (file.size > MAX_FILE_SIZE_BYTES) {
+                                            showMessage(`Ukuran file maksimum adalah ${MAX_FILE_SIZE_BYTES / 1024} KB.`, 'Ukuran File Terlalu Besar');
+                                            e.target.value = ''; // Clear the input
+                                            const modalPreviewPhoto = document.getElementById('modal-preview-photo');
+                                            if (modalPreviewPhoto) modalPreviewPhoto.src = guruProfile.photo; // Revert preview
+                                            return;
+                                        }
+                                        const reader = new FileReader();
+                                        reader.onloadend = () => {
+                                            const modalPreviewPhoto = document.getElementById('modal-preview-photo');
+                                            if (modalPreviewPhoto) modalPreviewPhoto.src = reader.result;
+                                        };
+                                        reader.readAsDataURL(file);
+                                    } else {
                                         const modalPreviewPhoto = document.getElementById('modal-preview-photo');
-                                        // Still show preview in modal but will use placeholder for Firestore
-                                        if (modalPreviewPhoto) modalPreviewPhoto.src = reader.result;
-                                    };
-                                    reader.readAsDataURL(file);
-                                } else {
+                                        if (modalPreviewPhoto) modalPreviewPhoto.src = guruProfile.photo; // Revert to current photo if input is cleared
+                                    }
+                                };
+                            }
+                            const clearPhotoButton = document.getElementById('clear-photo-button');
+                            if (clearPhotoButton) {
+                                clearPhotoButton.onclick = async () => {
+                                    guruProfile.photo = 'https://placehold.co/128x128/E0E7FF/4F46E5?text=Foto'; // Set to placeholder
                                     const modalPreviewPhoto = document.getElementById('modal-preview-photo');
                                     if (modalPreviewPhoto) modalPreviewPhoto.src = guruProfile.photo;
-                                }
-                            };
-                        }
-                        const clearPhotoButton = document.getElementById('clear-photo-button');
-                        if (clearPhotoButton) {
-                            clearPhotoButton.onclick = async () => {
-                                guruProfile.photo = 'https://placehold.co/128x128/E0E7FF/4F46E5?text=Foto';
-                                const modalPreviewPhoto = document.getElementById('modal-preview-photo');
-                                if (modalPreviewPhoto) modalPreviewPhoto.src = guruProfile.photo;
-                                const photoInput = document.getElementById('photoFile');
-                                if (photoInput) photoInput.value = '';
-                                // Also update Firestore
-                                try {
-                                    await window.updateDoc(getDocRef('profile', 'guruProfileDoc'), { photo: guruProfile.photo });
-                                    showMessage('Foto profil berhasil dihapus.', 'Berhasil');
-                                } catch (error) {
-                                    console.error("Error clearing photo in Firestore:", error);
-                                    showMessage(`Gagal menghapus foto: ${error.message}`, 'Kesalahan');
-                                }
-                            };
-                        }
-                    };
-                }
-            }
-            window.editGuruProfile = () => { }; // Expose to global scope if needed elsewhere
+                                    const photoInput = document.getElementById('photoFile');
+                                    if (photoInput) photoInput.value = ''; // Clear file input value
 
-            async function renderJadwalMengajar() {
+                                    try {
+                                        // Update Firestore with the placeholder URL
+                                        await window.updateDoc(getDocRef('profile', 'guruProfileDoc'), { photo: guruProfile.photo });
+                                        showMessage('Foto profil berhasil dihapus.', 'Berhasil');
+                                    } catch (error) {
+                                        console.error("Error clearing photo in Firestore:", error);
+                                        showMessage(`Gagal menghapus foto: ${error.message}.`, 'Kesalahan');
+                                    }
+                                };
+                            }
+                        };
+                    }
+                }, 0); // Short delay to ensure DOM is updated
+
+                return contentHtml;
+            }
+
+            function renderJadwalMengajarContent() {
                 let rowsHtml = '';
                 const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']; // Ensure consistent order
                 for (const day of days) {
@@ -877,14 +914,12 @@
                     rowsHtml += `</div>`;
                 }
 
-                const html = `
-                    ${renderHeader("Jadwal Mengajar", '<i data-lucide="calendar" class="lucide lucide-calendar" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addLesson()', true)}
+                const contentHtml = `
                     <div id="schedule-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         ${rowsHtml}
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addLesson = () => {
@@ -1026,7 +1061,7 @@
             };
 
 
-            function renderDaftarSiswa() {
+            function renderDaftarSiswaContent() {
                 let rowsHtml = '';
                 if (studentData.length > 0) {
                     studentData.forEach(student => {
@@ -1049,8 +1084,7 @@
                     rowsHtml = `<tr><td colspan="7" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada data siswa.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Daftar Siswa", '<i data-lucide="users" class="lucide lucide-users" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addStudent()', true)}
+                const contentHtml = `
                     <div id="student-list-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -1072,8 +1106,7 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addStudent = () => {
@@ -1166,7 +1199,7 @@
                 });
             };
 
-            function renderDaftarHadir() {
+            function renderDaftarHadirContent() {
                 let filteredDaftarHadir = selectedDateDaftarHadir
                     ? daftarHadir.filter(item => item.date === selectedDateDaftarHadir)
                     : daftarHadir;
@@ -1252,8 +1285,7 @@
                     detailRowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada data kehadiran.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Daftar Hadir", '<i data-lucide="check-square" class="lucide lucide-check-square" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addAttendance()', true)}
+                const contentHtml = `
                     <div class="bg-white p-6 rounded-lg shadow-md mb-6">
                         <h3 class="text-xl font-semibold text-gray-700 mb-3">Filter Berdasarkan Tanggal</h3>
                         <input type="date" id="attendance-date-filter" value="${selectedDateDaftarHadir}" class="w-full p-2 border rounded-lg focus:ring-blue-500 focus:border-blue-500" />
@@ -1280,18 +1312,20 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
 
-                document.getElementById('attendance-date-filter').onchange = (e) => {
-                    selectedDateDaftarHadir = e.target.value;
-                    renderDaftarHadir();
-                };
+                // Attach event listener for the filter after rendering
+                setTimeout(() => {
+                    document.getElementById('attendance-date-filter').onchange = (e) => {
+                        selectedDateDaftarHadir = e.target.value;
+                        renderApp(); // Re-render to apply filter
+                    };
+                }, 0);
+                return contentHtml;
             }
 
             window.clearAttendanceDateFilter = () => {
                 selectedDateDaftarHadir = '';
-                renderDaftarHadir();
+                renderApp(); // Re-render to clear filter
             };
 
             window.addAttendance = () => {
@@ -1399,7 +1433,7 @@
             };
 
 
-            function renderProgramSemesterTahunan() {
+            function renderProgramSemesterTahunanContent() {
                 let rowsHtml = '';
                 if (programSemesterTahunan.length > 0) {
                     programSemesterTahunan.forEach(program => {
@@ -1419,8 +1453,7 @@
                     rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada program semester atau tahunan.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Program Semester & Tahunan", '<i data-lucide="book" class="lucide lucide-book" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addProgramSemesterTahunan()', true)}
+                const contentHtml = `
                     <div id="program-semester-tahunan-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -1439,8 +1472,7 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addProgramSemesterTahunan = () => {
@@ -1510,7 +1542,7 @@
             };
 
 
-            function renderKalenderPendidikan() {
+            function renderKalenderPendidikanContent() {
                 let rowsHtml = '';
                 if (kalenderPendidikan.length > 0) {
                     kalenderPendidikan.forEach(event => {
@@ -1530,8 +1562,7 @@
                     rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada acara dalam kalender pendidikan.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Kalender Pendidikan", '<i data-lucide="calendar" class="lucide lucide-calendar" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addCalendarEvent()', true)}
+                const contentHtml = `
                     <div id="kalender-pendidikan-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -1550,8 +1581,7 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addCalendarEvent = () => {
@@ -1627,7 +1657,7 @@
             };
 
 
-            function renderDaftarNilai() {
+            function renderDaftarNilaiContent() {
                 let rowsHtml = '';
                 if (daftarNilai.length > 0) {
                     daftarNilai.forEach(entry => {
@@ -1650,8 +1680,7 @@
                     rowsHtml = `<tr><td colspan="3" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada entri daftar nilai.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Daftar Nilai", '<i data-lucide="clipboard-list" class="lucide lucide-clipboard-list" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addDaftarNilaiEntry()', true)}
+                const contentHtml = `
                     <div id="daftar-nilai-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -1669,8 +1698,7 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addDaftarNilaiEntry = () => {
@@ -1689,7 +1717,8 @@
                         await window.addDoc(getCollectionRef('grades'), newEntry);
                         closeDataModal();
                         showMessage('Entri daftar nilai baru berhasil ditambahkan.', 'Berhasil');
-                    } catch (error) {
+                    }
+                     catch (error) {
                         console.error("Error adding daftar nilai entry:", error);
                         showMessage(`Gagal menambahkan entri: ${error.message}`, 'Kesalahan');
                     }
@@ -1736,7 +1765,7 @@
             };
 
 
-            function renderAsesmen() {
+            function renderAsesmenContent() {
                 let rowsHtml = '';
                 if (asesmen.length > 0) {
                     asesmen.forEach(assessment => {
@@ -1761,8 +1790,7 @@
                     rowsHtml = `<tr><td colspan="5" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada data asesmen.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Asesmen", '<i data-lucide="target" class="lucide lucide-target" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addAssessment()', true)}
+                const contentHtml = `
                     <div id="asesmen-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -1782,8 +1810,7 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addAssessment = () => {
@@ -1863,7 +1890,7 @@
             };
 
 
-            function renderKaryaInovatif() {
+            function renderKaryaInovatifContent() {
                 let rowsHtml = '';
                 if (karyaInovatif.length > 0) {
                     karyaInovatif.forEach(work => {
@@ -1883,8 +1910,7 @@
                     rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada data karya inovatif.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Karya Inovatif", '<i data-lucide="brain-circuit" class="lucide lucide-brain-circuit" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addKaryaInovatif()', true)}
+                const contentHtml = `
                     <div id="karya-inovatif-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -1903,8 +1929,7 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addKaryaInovatif = () => {
@@ -1974,7 +1999,7 @@
             };
 
 
-            function renderProgramKerjaGuru() {
+            function renderProgramKerjaGuruContent() {
                 let rowsHtml = '';
                 if (programKerjaGuru.length > 0) {
                     programKerjaGuru.forEach(program => {
@@ -1990,7 +2015,7 @@
                                     <span class="px-2 py-1 rounded-full text-xs font-semibold ${statusClass}">
                                         ${program.status}
                                     </span>
-                                </td>
+                               </td>
                                 <td class="py-3 px-4 flex gap-2">
                                     <button onclick="editProgramKerjaGuru('${program.id}')" class="text-yellow-600 hover:text-yellow-800"> <i data-lucide="edit" class="lucide lucide-edit" style="width: 18px; height: 18px;"></i> </button>
                                     <button onclick="confirmDeleteProgramKerjaGuru('${program.id}')" class="text-red-600 hover:text-red-800"> <i data-lucide="trash-2" class="lucide lucide-trash-2" style="width: 18px; height: 18px;"></i> </button>
@@ -2002,8 +2027,7 @@
                     rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada program kerja guru.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Program Kerja Guru", '<i data-lucide="award" class="lucide lucide-award" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addProgramKerjaGuru()', true)}
+                const contentHtml = `
                     <div id="program-kerja-guru-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -2022,8 +2046,7 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addProgramKerjaGuru = () => {
@@ -2109,7 +2132,7 @@
             };
 
 
-            function renderModulAjar() {
+            function renderModulAjarContent() {
                 let rowsHtml = '';
                 if (modulAjar.length > 0) {
                     modulAjar.forEach(module => {
@@ -2133,8 +2156,7 @@
                     rowsHtml = `<tr><td colspan="3" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada modul ajar.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Modul Ajar", '<i data-lucide="book" class="lucide lucide-book" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addModulAjar()', false)}
+                const contentHtml = `
                     <div id="modul-ajar-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -2152,8 +2174,7 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addModulAjar = () => {
@@ -2219,7 +2240,7 @@
             };
 
 
-            function renderRiwayatPelatihan() {
+            function renderRiwayatPelatihanContent() {
                 let rowsHtml = '';
                 if (riwayatPelatihan.length > 0) {
                     riwayatPelatihan.forEach(training => {
@@ -2239,8 +2260,7 @@
                     rowsHtml = `<tr><td colspan="4" class="py-3 px-4 text-gray-500 italic text-center">Tidak ada riwayat pelatihan.</td></tr>`;
                 }
 
-                const html = `
-                    ${renderHeader("Riwayat Pelatihan", '<i data-lucide="graduation-cap" class="lucide lucide-graduation-cap" style="width: 24px; height: 24px;"></i>', 'Dashboard', 'addRiwayatPelatihan()', true)}
+                const contentHtml = `
                     <div id="riwayat-pelatihan-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
                         <div class="overflow-x-auto">
                             <table class="min-w-full bg-white">
@@ -2259,8 +2279,7 @@
                         </div>
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
 
             window.addRiwayatPelatihan = () => {
@@ -2336,7 +2355,7 @@
             };
 
 
-            function renderDashboard() {
+            function renderDashboardContent() {
                 const cardData = [
                     { title: "Daftar Siswa", icon: "users", menu: "Daftar Siswa", bgColor: "bg-rose-500" },
                     { title: "Jadwal Mengajar", icon: "calendar", menu: "Jadwal Mengajar", bgColor: "bg-emerald-500" },
@@ -2365,15 +2384,127 @@
                     `;
                 });
 
-                const html = `
-                    ${renderHeader("Dashboard", '<i data-lucide="layout-dashboard" class="lucide lucide-layout-dashboard" style="width: 24px; height: 24px;"></i>', null, null, false)}
+                const contentHtml = `
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
                         ${cardsHtml}
                     </div>
                 `;
-                mainContent.innerHTML = html;
-                lucide.createIcons();
+                return contentHtml;
             }
+
+
+            // --- Centralized Page Content Renderer ---
+            function renderPageContent() {
+                let contentHtml = '';
+                let headerTitle = '';
+                let headerIconHtml = '';
+                let headerOnBack = null;
+                let headerOnAdd = null;
+                let showGlobalDownload = true;
+
+                switch (activeMenu) {
+                    case 'Dashboard':
+                        headerTitle = "Dashboard";
+                        headerIconHtml = '<i data-lucide="layout-dashboard" style="width: 24px; height: 24px;"></i>';
+                        showGlobalDownload = false; // No download button for Dashboard
+                        contentHtml = renderDashboardContent();
+                        break;
+                    case 'Profil Guru':
+                        headerTitle = "Profil Guru";
+                        headerIconHtml = '<i data-lucide="user-circle" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        contentHtml = renderProfilGuruContent();
+                        break;
+                    case 'Jadwal Mengajar':
+                        headerTitle = "Jadwal Mengajar";
+                        headerIconHtml = '<i data-lucide="calendar" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addLesson()';
+                        contentHtml = renderJadwalMengajarContent();
+                        break;
+                    case 'Daftar Siswa':
+                        headerTitle = "Daftar Siswa";
+                        headerIconHtml = '<i data-lucide="users" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addStudent()';
+                        contentHtml = renderDaftarSiswaContent();
+                        break;
+                    case 'Daftar Hadir':
+                        headerTitle = "Daftar Hadir";
+                        headerIconHtml = '<i data-lucide="check-square" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addAttendance()';
+                        contentHtml = renderDaftarHadirContent();
+                        break;
+                    case 'Program Semester & Tahunan':
+                        headerTitle = "Program Semester & Tahunan";
+                        headerIconHtml = '<i data-lucide="book" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addProgramSemesterTahunan()';
+                        contentHtml = renderProgramSemesterTahunanContent();
+                        break;
+                    case 'Kalender Pendidikan':
+                        headerTitle = "Kalender Pendidikan";
+                        headerIconHtml = '<i data-lucide="calendar" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addCalendarEvent()';
+                        contentHtml = renderKalenderPendidikanContent();
+                        break;
+                    case 'Daftar Nilai':
+                        headerTitle = "Daftar Nilai";
+                        headerIconHtml = '<i data-lucide="clipboard-list" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addDaftarNilaiEntry()';
+                        contentHtml = renderDaftarNilaiContent();
+                        break;
+                    case 'Asesmen':
+                        headerTitle = "Asesmen";
+                        headerIconHtml = '<i data-lucide="target" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addAssessment()';
+                        contentHtml = renderAsesmenContent();
+                        break;
+                    case 'Karya Inovatif':
+                        headerTitle = "Karya Inovatif";
+                        headerIconHtml = '<i data-lucide="brain-circuit" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addKaryaInovatif()';
+                        contentHtml = renderKaryaInovatifContent();
+                        break;
+                    case 'Program Kerja Guru':
+                        headerTitle = "Program Kerja Guru";
+                        headerIconHtml = '<i data-lucide="award" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addProgramKerjaGuru()';
+                        contentHtml = renderProgramKerjaGuruContent();
+                        break;
+                    case 'Modul Ajar':
+                        headerTitle = "Modul Ajar";
+                        headerIconHtml = '<i data-lucide="book" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addModulAjar()';
+                        showGlobalDownload = false; // Modul Ajar has individual download buttons
+                        contentHtml = renderModulAjarContent();
+                        break;
+                    case 'Riwayat Pelatihan':
+                        headerTitle = "Riwayat Pelatihan";
+                        headerIconHtml = '<i data-lucide="graduation-cap" style="width: 24px; height: 24px;"></i>';
+                        headerOnBack = 'Dashboard';
+                        headerOnAdd = 'addRiwayatPelatihan()';
+                        contentHtml = renderRiwayatPelatihanContent();
+                        break;
+                    default:
+                        headerTitle = "Dashboard";
+                        headerIconHtml = '<i data-lucide="layout-dashboard" style="width: 24px; height: 24px;"></i>';
+                        showGlobalDownload = false;
+                        contentHtml = renderDashboardContent();
+                        break;
+                }
+
+                mainContent.innerHTML = renderHeader(headerTitle, headerIconHtml, headerOnBack, headerOnAdd, showGlobalDownload) + contentHtml;
+                lucide.createIcons(); // Re-create icons for the newly injected HTML
+            }
+
 
             // --- Render Function ---
             function renderApp() {
@@ -2383,7 +2514,6 @@
                 } else {
                     loginPage.style.display = 'none';
                     appContainer.style.display = 'flex';
-                    userIdDisplay.textContent = `ID Pengguna: ${userId}`; // Display User ID
 
                     // Update Header Info
                     guruNameSpan.textContent = guruProfile.name;
@@ -2391,50 +2521,7 @@
                     guruPhotoImg.onerror = function() { this.onerror=null; this.src='https://placehold.co/40x40/E0E7FF/4F46E5?text=G'; };
                     guruPhotoImg.onclick = () => setActiveMenu('Profil Guru');
 
-                    switch (activeMenu) {
-                        case 'Dashboard':
-                            renderDashboard();
-                            break;
-                        case 'Profil Guru':
-                            renderProfilGuru();
-                            break;
-                        case 'Jadwal Mengajar':
-                            renderJadwalMengajar();
-                            break;
-                        case 'Daftar Siswa':
-                            renderDaftarSiswa();
-                            break;
-                        case 'Daftar Hadir':
-                            renderDaftarHadir();
-                            break;
-                        case 'Program Semester & Tahunan':
-                            renderProgramSemesterTahunan();
-                            break;
-                        case 'Kalender Pendidikan':
-                            renderKalenderPendidikan();
-                            break;
-                        case 'Daftar Nilai':
-                            renderDaftarNilai();
-                            break;
-                        case 'Asesmen':
-                            renderAsesmen();
-                            break;
-                        case 'Karya Inovatif':
-                            renderKaryaInovatif();
-                            break;
-                        case 'Program Kerja Guru':
-                            renderProgramKerjaGuru();
-                            break;
-                        case 'Modul Ajar':
-                            renderModulAjar();
-                            break;
-                        case 'Riwayat Pelatihan':
-                            renderRiwayatPelatihan();
-                            break;
-                        default:
-                            renderDashboard();
-                            break;
-                    }
+                    renderPageContent(); // Call the centralized content renderer
                 }
 
                 // Render Modals
@@ -2475,8 +2562,20 @@
                     isLoggedIn = false;
                     activeMenu = 'Dashboard'; // Reset active menu on logout
                     // Clear local data if needed, or re-fetch initial mock data on next login
+                    // Note: Firestore listeners will automatically update local data on sign-out
+                    // if rules allow, or clear if rules restrict.
                     studentData = [];
-                    // ... reset other data arrays ...
+                    schedule = JSON.parse(JSON.stringify(initialSchedule));
+                    daftarHadir = [];
+                    programSemesterTahunan = [];
+                    kalenderPendidikan = [];
+                    daftarNilai = [];
+                    asesmen = [];
+                    karyaInovatif = [];
+                    programKerjaGuru = [];
+                    modulAjar = [];
+                    riwayatPelatihan = [];
+
                     renderApp();
                     showMessage('Anda telah berhasil keluar.', 'Sesi Berakhir');
                 } catch (error) {

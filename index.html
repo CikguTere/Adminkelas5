@@ -4,6 +4,20 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Admin KELAS 5</title>
+    <!-- Preconnect for faster connections to critical domains -->
+    <link rel="preconnect" href="https://www.gstatic.com">
+    <link rel="preconnect" href="https://unpkg.com">
+    <link rel="preconnect" href="https://cdnjs.cloudflare.com">
+
+    <!-- Preload critical Firebase SDKs and Lucide Icons for faster initial load -->
+    <link rel="preload" href="https://www.gstatic.com/firebasejs/10.0.0/firebase-app.js" as="script" crossorigin>
+    <link rel="preload" href="https://www.gstatic.com/firebasejs/10.0.0/firebase-auth.js" as="script" crossorigin>
+    <link rel="preload" href="https://www.gstatic.com/firebasejs/10.0.0/firebase-firestore.js" as="script" crossorigin>
+    <link rel="preload" href="https://unpkg.com/lucide@latest" as="script" crossorigin>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" as="script" crossorigin>
+    <link rel="preload" href="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js" as="script" crossorigin>
+
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Lucide Icons CDN -->
@@ -18,7 +32,8 @@
         // Variabel global yang disediakan oleh lingkungan Canvas
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'default-app-id';
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {};
-        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null;
+        // Perbaikan: Menggunakan __initial_auth_token di sisi kanan, bukan initialAuthToken
+        const initialAuthToken = typeof __initial_auth_token !== 'undefined' ? __initial_auth_token : null; 
 
         // Inisialisasi Firebase
         const app = initializeApp(firebaseConfig);
@@ -1119,7 +1134,7 @@
                                 <td class="py-3 px-4">${student.nisn}</td>
                                 <td class="py-3 px-4">${student.name}</td>
                                 <td class="py-3 px-4">${student.gender}</td>
-                                <td class="py-3 px-4">${student.birthPlace}, ${new Date(student.birthDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
+                                <td class="py-3 px-4">${new Date(student.birthDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</td>
                                 <td class="py-3 px-4">${student.parent}</td>
                                 <td class="py-3 px-4">${student.address}</td>
                                 <td class="py-3 px-4 flex gap-2">
@@ -1142,7 +1157,7 @@
                                         <th class="py-3 px-4 text-left">NISN</th>
                                         <th class="py-3 px-4 text-left">Nama</th>
                                         <th class="py-3 px-4 text-left">Jenis Kelamin</th>
-                                        <th class="py-3 px-4 text-left">Tempat, Tanggal Lahir</th>
+                                        <th class="py-3 px-4 text-left">Tanggal Lahir</th>
                                         <th class="py-3 px-4 text-left">Orang Tua/Wali</th>
                                         <th class="py-3 px-4 text-left">Alamat</th>
                                         <th class="py-3 px-4 text-left w-24">Aksi</th>

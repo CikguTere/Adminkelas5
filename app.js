@@ -112,18 +112,6 @@ window.addEventListener('load', async () => {
         { id: '3', assessmentName: 'Kuis Sejarah - Pahlawan Nasional', date: '2025-08-10', subject: 'IPS', link: 'https://quizizz.com/admin/quiz/61_example_history/start' },
     ];
 
-    // --- Removed initialKaryaInovatif ---
-    // let initialKaryaInovatif = [
-    //     { id: '1', workTitle: 'Media Pembelajaran Interaktif "Pecahan Asyik"', description: 'Aplikasi interaktif untuk membantu siswa memahami konsep pecahan.', year: '2024' },
-    //     { id: '2', workTitle: 'Modul Digital IPS Kelas 5', description: 'Modul pembelajaran IPS berbasis digital dengan video dan kuis interaktif.', year: '2023' },
-    // ];
-
-    // --- Removed initialProgramKerjaGuru ---
-    // let initialProgramKerjaGuru = [
-    //     { id: '1', programName: 'Peningkatan Minat Baca Siswa', description: 'Mengadakan program membaca 15 menit sebelum pelajaran dimulai.', status: 'Berjalan' },
-    //     { id: '2', programName: 'Pembinaan Olimpiade Sains', description: 'Membimbing siswa terpilih untuk persiapan olimpiade sains.', status: 'Belum Dimulai' },
-    // ];
-
     let initialModulAjar = [
         {id: '1', title: 'Modul Matematika - Pecahan', link: 'https://docs.google.com/document/d/1example/edit'},
         {id: '2', title: 'Modul IPA - Ekosistem', link: 'https://www.w3.org/WAI/ER/tests/xhtml/testfiles/resources/pdf/dummy.pdf'}
@@ -154,9 +142,6 @@ window.addEventListener('load', async () => {
     let kalenderPendidikan = [];
     let daftarNilai = [];
     let asesmen = [];
-    // --- Removed karyaInovatif and programKerjaGuru from state ---
-    // let karyaInovatif = [];
-    // let programKerjaGuru = [];
     let modulAjar = [];
     let riwayatPelatihan = [];
 
@@ -168,9 +153,6 @@ window.addEventListener('load', async () => {
     let kalenderPendidikanLoaded = false;
     let daftarNilaiLoaded = false;
     let asesmenLoaded = false;
-    // --- Removed loaded flags for karyaInovatif and programKerjaGuru ---
-    // let karyaInovatifLoaded = false;
-    // let programKerjaGuruLoaded = false;
     let modulAjarLoaded = false;
     let riwayatPelatihanLoaded = false;
 
@@ -382,38 +364,6 @@ window.addEventListener('load', async () => {
         });
     }
 
-    // --- Removed initializeKaryaInovatifListener ---
-    // function initializeKaryaInovatifListener() {
-    //     if (karyaInovatifLoaded) return;
-    //     karyaInovatifLoaded = true;
-    //     onSnapshot(getCollectionRef('innovative_works'), (snapshot) => {
-    //         karyaInovatif = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    //         if (karyaInovatif.length === 0) {
-    //             initialKaryaInovatif.forEach(async (item) => {
-    //                 await setDoc(doc(getCollectionRef('innovative_works')), item);
-    //             });
-    //             karyaInovatif = initialKaryaInovatif;
-    //         }
-    //         renderApp();
-    //     });
-    // }
-
-    // --- Removed initializeProgramKerjaGuruListener ---
-    // function initializeProgramKerjaGuruListener() {
-    //     if (programKerjaGuruLoaded) return;
-    //     programKerjaGuruLoaded = true;
-    //     onSnapshot(getCollectionRef('teacher_programs'), (snapshot) => {
-    //         programKerjaGuru = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-    //         if (programKerjaGuru.length === 0) {
-    //             initialProgramKerjaGuru.forEach(async (item) => {
-    //                 await setDoc(doc(getCollectionRef('teacher_programs')), item);
-    //             });
-    //             programKerjaGuru = initialProgramKerjaGuru;
-    //         }
-    //         renderApp();
-    //     });
-    // }
-
     function initializeModulAjarListener() {
         if (modulAjarLoaded) return;
         modulAjarLoaded = true;
@@ -553,7 +503,7 @@ window.addEventListener('load', async () => {
     // Generic Header component (rendered dynamically)
     function renderHeader(title, iconHtml, onBack = null, onAdd = null, showGlobalDownload = true) {
         let backButtonHtml = onBack ? `<button onclick="handleBack('${onBack}')" class="mr-4 text-gray-500 hover:text-blue-600 transition-colors"> <i data-lucide="arrow-left" class="lucide lucide-arrow-left" style="width: 24px; height: 24px;"></i> </button>` : '';
-        let addButtonHtml = onAdd ? `<button onclick="${onAdd}" class="flex-1 sm:flex-initial flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm"> <i data-lucide="plus-circle" class="lucide lucide-plus-circle mr-2" style="width: 18px; height: 18px;"></i> Tambah </button>` : '';
+        let addButtonHtml = onAdd ? `<button onclick="${onAdd}" class="flex-1 sm:flex-initial flex items-center justify-center bg-green-500 hover:bg-green-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm"> <i data-lucide="plus-circle" class="lucide lucude-plus-circle mr-2" style="width: 18px; height: 18px;"></i> Tambah </button>` : '';
         let downloadButtonHtml = showGlobalDownload ? `<button onclick="handleDownloadCurrentPage()" class="flex-1 sm:flex-initial flex items-center justify-center bg-blue-500 hover:bg-blue-600 text-white font-semibold py-2 px-4 rounded-lg transition duration-300 shadow-sm"> <i data-lucide="download" class="lucide lucide-download mr-2" style="width: 18px; height: 18px;"></i> PDF </button>` : '';
 
         return `
@@ -1106,27 +1056,29 @@ window.addEventListener('load', async () => {
             ? daftarHadir.filter(item => item.date === selectedDateDaftarHadir)
             : daftarHadir;
 
-        const attendanceRecap = filteredDaftarHadir.reduce((acc, curr) => {
-            if (!acc[curr.date]) {
-                acc[curr.date] = { Hadir: 0, Sakit: 0, Izin: 0, Alpha: 0, totalStudents: studentData.length };
-            }
-            acc[curr.date][curr.status]++;
-            return acc;
-        }, {});
+        // Removing the attendance recap logic and display
+        // const attendanceRecap = filteredDaftarHadir.reduce((acc, curr) => {
+        //     if (!acc[curr.date]) {
+        //         acc[curr.date] = { Hadir: 0, Sakit: 0, Izin: 0, Alpha: 0, totalStudents: studentData.length };
+        //     }
+        //     acc[curr.date][curr.status]++;
+        //     return acc;
+        // }, {});
 
-        const recapHeaders = ['Tanggal', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total Siswa'];
-        const recapRowMapper = (item) => [
-            new Date(item[0]).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
-            item[1].Hadir,
-            item[1].Sakit,
-            item[1].Izin,
-            item[1].Alpha,
-            item[1].totalStudents
-        ];
-        const sortedRecapData = Object.entries(attendanceRecap).sort((a, b) => a[0].localeCompare(b[0]));
-        let recapHtml = sortedRecapData.length > 0
-            ? `<h3 class="text-xl font-semibold text-gray-700 mb-4">Rekapitulasi Kehadiran</h3>${renderGenericTable(recapHeaders, sortedRecapData, recapRowMapper)}`
-            : `<p class="text-gray-500 italic mb-4">Tidak ada data rekapitulasi untuk tanggal ini.</p>`;
+        // const recapHeaders = ['Tanggal', 'Hadir', 'Sakit', 'Izin', 'Alpha', 'Total Siswa'];
+        // const recapRowMapper = (item) => [
+        //     new Date(item[0]).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' }),
+        //     item[1].Hadir,
+        //     item[1].Sakit,
+        //     item[1].Izin,
+        //     item[1].Alpha,
+        //     item[1].totalStudents
+        // ];
+        // const sortedRecapData = Object.entries(attendanceRecap).sort((a, b) => a[0].localeCompare(b[0]));
+        // let recapHtml = sortedRecapData.length > 0
+        //     ? `<h3 class="text-xl font-semibold text-gray-700 mb-4">Rekapitulasi Kehadiran</h3>${renderGenericTable(recapHeaders, sortedRecapData, recapRowMapper)}`
+        //     : `<p class="text-gray-500 italic mb-4">Tidak ada data rekapitulasi untuk tanggal ini.</p>`;
+
 
         const detailHeaders = ['Tanggal', 'Nama Siswa', 'Status'];
         const detailRowMapper = (attendance) => [
@@ -1152,7 +1104,6 @@ window.addEventListener('load', async () => {
                 ${selectedDateDaftarHadir ? `<button onclick="clearAttendanceDateFilter()" class="mt-2 bg-gray-200 hover:bg-gray-300 text-gray-800 py-1 px-3 rounded-lg text-sm">Hapus Filter</button>` : ''}
             </div>
             <div id="daftar-hadir-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-                ${recapHtml}
                 <h3 class="text-xl font-semibold text-gray-700 mb-4">Detail Kehadiran</h3>
                 ${renderGenericTable(detailHeaders, filteredDaftarHadir, detailRowMapper, detailActions, { statusField: 'status', statusClassMapper: statusClassMapper })}
             </div>
@@ -1522,7 +1473,7 @@ window.addEventListener('load', async () => {
         itemToDelete = assessmentId;
         showConfirmDeleteModal("Apakah Anda yakin ingin menghapus asesmen ini?", async () => {
             try {
-                await deleteDoc(getDocRef('assessments', itemToDelete));
+                await deleteDoc(getCollectionRef('assessments', itemToDelete));
                 closeConfirmDeleteModal();
                 showMessage('Asesmen berhasil dihapus.', 'Berhasil');
             } catch (error) {
@@ -1531,165 +1482,6 @@ window.addEventListener('load', async () => {
             }
         });
     };
-
-
-    // --- Removed renderKaryaInovatifContent ---
-    // function renderKaryaInovatifContent() {
-    //     initializeKaryaInovatifListener();
-
-    //     const headers = ['Judul Karya', 'Deskripsi', 'Tahun'];
-    //     const rowMapper = (work) => [work.workTitle, work.description, work.year];
-    //     const actions = {
-    //         edit: { fnName: 'editKaryaInovatif', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
-    //         delete: { fnName: 'confirmDeleteKaryaInovatif', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
-    //     };
-
-    //     const contentHtml = `
-    //         <div id="karya-inovatif-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-    //             ${renderGenericTable(headers, karyaInovatif, rowMapper, actions)}
-    //         </div>
-    //     `;
-    //     return contentHtml;
-    // }
-
-    // --- Removed addKaryaInovatif ---
-    // window.addKaryaInovatif = () => {
-    //     editingItem = null;
-    //     const fields = [
-    //         { name: "workTitle", label: "Judul Karya", type: "text", required: true },
-    //         { name: "description", label: "Deskripsi Karya", type: "textarea", rows: 3 },
-    //         { name: "year", label: "Tahun", type: "text", required: true }
-    //     ];
-    //     renderGenericForm("Tambah Karya Inovatif Baru", fields, async (data) => {
-    //         try {
-    //             await addDoc(getCollectionRef('innovative_works'), data);
-    //             closeDataModal();
-    //             showMessage('Karya inovatif baru berhasil ditambahkan.', 'Berhasil');
-    //         } catch (error) {
-    //             console.error("Error adding karya inovatif:", error);
-    //             showMessage(`Gagal menambahkan karya: ${error.message}`, 'Kesalahan');
-    //         }
-    //     });
-    // };
-
-    // --- Removed editKaryaInovatif ---
-    // window.editKaryaInovatif = (workId) => {
-    //     const work = karyaInovatif.find(w => w.id === workId);
-    //     if (!work) return;
-    //     editingItem = work;
-    //     const fields = [
-    //         { name: "workTitle", label: "Judul Karya", type: "text", required: true, value: work.workTitle },
-    //         { name: "description", label: "Deskripsi Karya", type: "textarea", rows: 3, value: work.description },
-    //         { name: "year", label: "Tahun", type: "text", required: true, value: work.year }
-    //     ];
-    //     renderGenericForm("Ubah Karya Inovatif", fields, async (data) => {
-    //         try {
-    //             await updateDoc(getDocRef('innovative_works', editingItem.id), data);
-    //             closeDataModal();
-    //             showMessage('Karya inovatif berhasil diperbarui.', 'Berhasil');
-    //         } catch (error) {
-    //             console.error("Error updating karya inovatif:", error);
-    //             showMessage(`Gagal memperbarui karya: ${error.message}`, 'Kesalahan');
-    //         }
-    //     }, work);
-    // };
-
-    // --- Removed confirmDeleteKaryaInovatif ---
-    // window.confirmDeleteKaryaInovatif = (workId) => {
-    //     itemToDelete = workId;
-    //     showConfirmDeleteModal("Apakah Anda yakin ingin menghapus karya inovatif ini?", async () => {
-    //         try {
-    //             await deleteDoc(getDocRef('innovative_works', itemToDelete));
-    //             closeConfirmDeleteModal();
-    //             showMessage('Karya inovatif berhasil dihapus.', 'Berhasil');
-    //         } catch (error) {
-    //             console.error("Error deleting karya inovatif:", error);
-    //             showMessage(`Gagal menghapus karya: ${error.message}`, 'Kesalahan');
-    //         }
-    //     });
-    // };
-
-
-    // --- Removed renderProgramKerjaGuruContent ---
-    // function renderProgramKerjaGuruContent() {
-    //     initializeProgramKerjaGuruListener();
-
-    //     const headers = ['Nama Program', 'Deskripsi'];
-    //     const rowMapper = (program) => [program.programName, program.description];
-    //     const actions = {
-    //         edit: { fnName: 'editProgramKerjaGuru', icon: 'edit', class: 'text-yellow-600 hover:text-yellow-800' },
-    //         delete: { fnName: 'confirmDeleteProgramKerjaGuru', icon: 'trash-2', class: 'text-red-600 hover:text-red-800' }
-    //     };
-    //     const statusClassMapper = (status) => {
-    //         if (status === 'Berjalan') return 'bg-blue-100 text-blue-800';
-    //         if (status === 'Selesai') return 'bg-green-100 text-green-800';
-    //         return 'bg-yellow-100 text-yellow-800';
-    //     };
-
-    //     const contentHtml = `
-    //         <div id="program-kerja-guru-print-area" class="bg-white p-6 rounded-lg shadow-md print-area">
-    //             ${renderGenericTable(headers, programKerjaGuru, rowMapper, actions, { statusField: 'status', statusClassMapper: statusClassMapper })}
-    //         </div>
-    //     `;
-    //     return contentHtml;
-    // }
-
-    // --- Removed addProgramKerjaGuru ---
-    // window.addProgramKerjaGuru = () => {
-    //     editingItem = null;
-    //     const fields = [
-    //         { name: "programName", label: "Nama Program", type: "text", required: true },
-    //         { name: "description", label: "Deskripsi Program", type: "textarea", rows: 3 },
-    //         { name: "status", label: "Status", type: "select", required: true, placeholder: "Pilih Status", options: [{ value: "Berjalan", text: "Berjalan" }, { value: "Selesai", text: "Selesai" }, { value: "Belum Dimulai", text: "Belum Dimulai" }] }
-    //     ];
-    //     renderGenericForm("Tambah Program Kerja Baru", fields, async (data) => {
-    //         try {
-    //             await addDoc(getCollectionRef('teacher_programs'), data);
-    //             closeDataModal();
-    //             showMessage('Program kerja baru berhasil ditambahkan.', 'Berhasil');
-    //         } catch (error) {
-    //             console.error("Error adding program kerja guru:", error);
-    //             showMessage(`Gagal menambahkan program kerja: ${error.message}`, 'Kesalahan');
-    //         }
-    //     });
-    // };
-
-    // --- Removed editProgramKerjaGuru ---
-    // window.editProgramKerjaGuru = (programId) => {
-    //     const program = programKerjaGuru.find(p => p.id === programId);
-    //     if (!program) return;
-    //     editingItem = program;
-    //     const fields = [
-    //         { name: "programName", label: "Nama Program", type: "text", required: true, value: program.programName },
-    //         { name: "description", label: "Deskripsi Program", type: "textarea", rows: 3, value: program.description },
-    //         { name: "status", label: "Status", type: "select", required: true, placeholder: "Pilih Status", options: [{ value: "Berjalan", text: "Berjalan" }, { value: "Selesai", text: "Selesai" }, { value: "Belum Dimulai", text: "Belum Dimulai" }], value: program.status }
-    //     ];
-    //     renderGenericForm("Ubah Program Kerja", fields, async (data) => {
-    //         try {
-    //             await updateDoc(getDocRef('teacher_programs', editingItem.id), data);
-    //             closeDataModal();
-    //             showMessage('Program kerja berhasil diperbarui.', 'Berhasil');
-    //         } catch (error) {
-    //             console.error("Error updating program kerja guru:", error);
-    //             showMessage(`Gagal memperbarui program kerja: ${error.message}`, 'Kesalahan');
-    //         }
-    //     });
-    // };
-
-    // --- Removed confirmDeleteProgramKerjaGuru ---
-    // window.confirmDeleteProgramKerjaGuru = (programId) => {
-    //     itemToDelete = programId;
-    //     showConfirmDeleteModal("Apakah Anda yakin ingin menghapus program kerja ini?", async () => {
-    //         try {
-    //             await deleteDoc(getDocRef('teacher_programs', itemToDelete));
-    //             closeConfirmDeleteModal();
-    //             showMessage('Program kerja berhasil dihapus.', 'Berhasil');
-    //         } catch (error) {
-    //             console.error("Error deleting program kerja guru:", error);
-    //             showMessage(`Gagal menghapus program kerja: ${error.message}`, 'Kesalahan');
-    //         }
-    //     });
-    // };
 
 
     function renderModulAjarContent() {
@@ -1756,7 +1548,7 @@ window.addEventListener('load', async () => {
         itemToDelete = moduleId;
         showConfirmDeleteModal("Apakah Anda yakin ingin menghapus modul ajar ini?", async () => {
             try {
-                await deleteDoc(getDocRef('teaching_modules', itemToDelete));
+                await deleteDoc(getCollectionRef('teaching_modules', itemToDelete));
                 closeConfirmDeleteModal();
                 showMessage('Modul ajar berhasil dihapus.', 'Berhasil');
             } catch (error) {
@@ -1833,7 +1625,7 @@ window.addEventListener('load', async () => {
         itemToDelete = trainingId;
         showConfirmDeleteModal("Apakah Anda yakin ingin menghapus riwayat pelatihan ini?", async () => {
             try {
-                await deleteDoc(getDocRef('trainings', itemToDelete));
+                await deleteDoc(getCollectionRef('trainings', itemToDelete));
                 closeConfirmDeleteModal();
                 showMessage('Riwayat pelatihan berhasil dihapus.', 'Berhasil');
             } catch (error) {
@@ -1853,9 +1645,6 @@ window.addEventListener('load', async () => {
             { title: "Kalender Pendidikan", icon: "calendar", menu: "Kalender Pendidikan", bgColor: "bg-violet-500" },
             { title: "Daftar Nilai", icon: "clipboard-list", menu: "Daftar Nilai", bgColor: "bg-sky-500" },
             { title: "Asesmen", icon: "target", menu: "Asesmen", bgColor: "bg-lime-500" },
-            // --- Removed Karya Inovatif and Program Kerja Guru from Dashboard ---
-            // { title: "Karya Inovatif", icon: "brain-circuit", menu: "Karya Inovatif", bgColor: "bg-orange-500" },
-            // { title: "Program Kerja Guru", icon: "award", menu: "Program Kerja Guru", bgColor: "bg-cyan-500" },
             { title: "Modul Ajar", icon: "book", menu: "Modul Ajar", bgColor: "bg-indigo-500" },
             { title: "Riwayat Pelatihan", icon: "graduation-cap", menu: "Riwayat Pelatihan", bgColor: "bg-purple-500" },
         ];
@@ -1954,21 +1743,6 @@ window.addEventListener('load', async () => {
                 headerOnAdd = 'addAssessment()';
                 contentHtml = renderAsesmenContent();
                 break;
-            // --- Removed Karya Inovatif and Program Kerja Guru from switch cases ---
-            // case 'Karya Inovatif':
-            //     headerTitle = "Karya Inovatif";
-            //     headerIconHtml = '<i data-lucide="brain-circuit" style="width: 24px; height: 24px;"></i>';
-            //     headerOnBack = 'Dashboard';
-            //     headerOnAdd = 'addKaryaInovatif()';
-            //     contentHtml = renderKaryaInovatifContent();
-            //     break;
-            // case 'Program Kerja Guru':
-            //     headerTitle = "Program Kerja Guru";
-            //     headerIconHtml = '<i data-lucide="award" style="width: 24px; height: 24px;"></i>';
-            //     headerOnBack = 'Dashboard';
-            //     headerOnAdd = 'addProgramKerjaGuru()';
-            //     contentHtml = renderProgramKerjaGuruContent();
-            //     break;
             case 'Modul Ajar':
                 headerTitle = "Modul Ajar";
                 headerIconHtml = '<i data-lucide="book" style="width: 24px; height: 24px;"></i>';
@@ -2064,9 +1838,6 @@ window.addEventListener('load', async () => {
             kalenderPendidikanLoaded = false;
             daftarNilaiLoaded = false;
             asesmenLoaded = false;
-            // --- Removed Reset flags for karyaInovatif and programKerjaGuru ---
-            // karyaInovatifLoaded = false;
-            // programKerjaGuruLoaded = false;
             modulAjarLoaded = false;
             riwayatPelatihanLoaded = false;
 
@@ -2078,9 +1849,6 @@ window.addEventListener('load', async () => {
             kalenderPendidikan = [];
             daftarNilai = [];
             asesmen = [];
-            // --- Removed Clear data states for karyaInovatif and programKerjaGuru ---
-            // karyaInovatif = [];
-            // programKerjaGuru = [];
             modulAjar = [];
             riwayatPelatihan = [];
 

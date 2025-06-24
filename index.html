@@ -295,9 +295,9 @@
             let db, auth; // Firebase instances, storage is removed
 
             // Data state (will be populated from Firestore)
-            let guruProfile = { ...initialGuruProfile };
+            let guruProfile = { ...initialGuruProfile }; // Always load immediately
             let studentData = [];
-            let schedule = JSON.parse(JSON.stringify(initialSchedule)); // Deep copy for nested objects
+            let schedule = JSON.parse(JSON.stringify(initialSchedule)); // Deep copy for nested objects, will be updated by snapshot
             let daftarHadir = [];
             let programSemesterTahunan = [];
             let kalenderPendidikan = [];
@@ -307,6 +307,20 @@
             let programKerjaGuru = [];
             let modulAjar = [];
             let riwayatPelatihan = [];
+
+            // Flags to track if data for a module has been fetched/initialized
+            let studentsLoaded = false;
+            let scheduleLoaded = false;
+            let daftarHadirLoaded = false;
+            let programSemesterTahunanLoaded = false;
+            let kalenderPendidikanLoaded = false;
+            let daftarNilaiLoaded = false;
+            let asesmenLoaded = false;
+            let karyaInovatifLoaded = false;
+            let programKerjaGuruLoaded = false;
+            let modulAjarLoaded = false;
+            let riwayatPelatihanLoaded = false;
+
 
             let messageModal = { isOpen: false, title: '', message: '' };
             let dataModal = { isOpen: false, title: '', formHtml: '' };
@@ -365,7 +379,7 @@
                 if (user) {
                     userId = user.uid;
                     isLoggedIn = true;
-                    await fetchAllDataFromFirestore();
+                    await fetchGuruProfile(); // Only fetch guru profile on initial auth
                 } else {
                     // Try to sign in anonymously with custom token if available
                     if (window.initialAuthToken) {
@@ -379,7 +393,7 @@
                         await window.signInAnonymously(auth); // Sign in anonymously
                     }
                 }
-                renderApp();
+                renderApp(); // Render after auth state is determined and guru profile fetched
             });
 
             // --- Firestore Helper Functions ---
@@ -399,6 +413,195 @@
                 return window.doc(db, `artifacts/${window.appId}/users/${userId}/${collectionName}`, docId);
             }
 
+            // --- Specific Data Fetching Functions (Lazy Loaded) ---
+            async function fetchGuruProfile() {
+                loadingOverlay.style.display = 'flex';
+                try {
+                    const guruProfileDoc = await window.getDoc(getDocRef('profile', 'guruProfileDoc'));
+                    if (guruProfileDoc.exists()) {
+                        guruProfile = guruProfileDoc.data();
+                    } else {
+                        // Set initial data if not found
+                        await window.setDoc(getDocRef('profile', 'guruProfileDoc'), initialGuruProfile);
+                        guruProfile = initialGuruProfile;
+                    }
+                } catch (error) {
+                    console.error("Error fetching guru profile:", error);
+                    showMessage(`Gagal memuat profil guru: ${error.message}. Coba refresh halaman.`, 'Kesalahan Data');
+                } finally {
+                    loadingOverlay.style.display = 'none';
+                }
+            }
+
+            function initializeStudentsListener() {
+                if (studentsLoaded) return;
+                studentsLoaded = true;
+                window.onSnapshot(getCollectionRef('students'), (snapshot) => {
+                    studentData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (studentData.length === 0) { // If Firestore is empty, use initial mock data
+                        initialStudentData.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('students')), item);
+                        });
+                        studentData = initialStudentData; // Set local state for immediate display
+                    }
+                    renderApp(); // Re-render once data is loaded/updated
+                });
+            }
+
+            function initializeScheduleListener() {
+                if (scheduleLoaded) return;
+                scheduleLoaded = true;
+                window.onSnapshot(getCollectionRef('schedules'), (snapshot) => {
+                    const fetchedSchedule = {};
+                    snapshot.docs.forEach(doc => {
+                        fetchedSchedule[doc.id] = doc.data().lessons;
+                    });
+                    schedule = { ...initialSchedule, ...fetchedSchedule }; // Merge with initial to ensure all days exist
+                    if (Object.keys(fetchedSchedule).length === 0) { // If Firestore is empty, initialize with mock data
+                        for (const day in initialSchedule) {
+                            window.setDoc(getDocRef('schedules', day), { lessons: initialSchedule[day] });
+                        }
+                        schedule = initialSchedule; // Set local state for immediate display
+                    }
+                    renderApp();
+                });
+            }
+
+            function initializeDaftarHadirListener() {
+                if (daftarHadirLoaded) return;
+                daftarHadirLoaded = true;
+                window.onSnapshot(getCollectionRef('attendance'), (snapshot) => {
+                    daftarHadir = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (daftarHadir.length === 0) {
+                        initialDaftarHadir.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('attendance')), item);
+                        });
+                        daftarHadir = initialDaftarHadir;
+                    }
+                    renderApp();
+                });
+            }
+
+            function initializeProgramSemesterTahunanListener() {
+                if (programSemesterTahunanLoaded) return;
+                programSemesterTahunanLoaded = true;
+                window.onSnapshot(getCollectionRef('semester_programs'), (snapshot) => {
+                    programSemesterTahunan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (programSemesterTahunan.length === 0) {
+                        initialProgramSemesterTahunan.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('semester_programs')), item);
+                        });
+                        programSemesterTahunan = initialProgramSemesterTahunan;
+                    }
+                    renderApp();
+                });
+            }
+
+            function initializeKalenderPendidikanListener() {
+                if (kalenderPendidikanLoaded) return;
+                kalenderPendidikanLoaded = true;
+                window.onSnapshot(getCollectionRef('calendar_events'), (snapshot) => {
+                    kalenderPendidikan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (kalenderPendidikan.length === 0) {
+                        initialKalenderPendidikan.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('calendar_events')), item);
+                        });
+                        kalenderPendidikan = initialKalenderPendidikan;
+                    }
+                    renderApp();
+                });
+            }
+
+            function initializeDaftarNilaiListener() {
+                if (daftarNilaiLoaded) return;
+                daftarNilaiLoaded = true;
+                window.onSnapshot(getCollectionRef('grades'), (snapshot) => {
+                    daftarNilai = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (daftarNilai.length === 0) {
+                        initialDaftarNilai.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('grades')), item);
+                        });
+                        daftarNilai = initialDaftarNilai;
+                    }
+                    renderApp();
+                });
+            }
+
+            function initializeAsesmenListener() {
+                if (asesmenLoaded) return;
+                asesmenLoaded = true;
+                window.onSnapshot(getCollectionRef('assessments'), (snapshot) => {
+                    asesmen = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (asesmen.length === 0) {
+                        initialAsesmen.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('assessments')), item);
+                        });
+                        asesmen = initialAsesmen;
+                    }
+                    renderApp();
+                });
+            }
+
+            function initializeKaryaInovatifListener() {
+                if (karyaInovatifLoaded) return;
+                karyaInovatifLoaded = true;
+                window.onSnapshot(getCollectionRef('innovative_works'), (snapshot) => {
+                    karyaInovatif = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (karyaInovatif.length === 0) {
+                        initialKaryaInovatif.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('innovative_works')), item);
+                        });
+                        karyaInovatif = initialKaryaInovatif;
+                    }
+                    renderApp();
+                });
+            }
+
+            function initializeProgramKerjaGuruListener() {
+                if (programKerjaGuruLoaded) return;
+                programKerjaGuruLoaded = true;
+                window.onSnapshot(getCollectionRef('teacher_programs'), (snapshot) => {
+                    programKerjaGuru = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (programKerjaGuru.length === 0) {
+                        initialProgramKerjaGuru.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('teacher_programs')), item);
+                        });
+                        programKerjaGuru = initialProgramKerjaGuru;
+                    }
+                    renderApp();
+                });
+            }
+
+            function initializeModulAjarListener() {
+                if (modulAjarLoaded) return;
+                modulAjarLoaded = true;
+                window.onSnapshot(getCollectionRef('teaching_modules'), (snapshot) => {
+                    modulAjar = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (modulAjar.length === 0) {
+                        initialModulAjar.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('teaching_modules')), item);
+                        });
+                        modulAjar = initialModulAjar;
+                    }
+                    renderApp();
+                });
+            }
+
+            function initializeRiwayatPelatihanListener() {
+                if (riwayatPelatihanLoaded) return;
+                riwayatPelatihanLoaded = true;
+                window.onSnapshot(getCollectionRef('trainings'), (snapshot) => {
+                    riwayatPelatihan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+                    if (riwayatPelatihan.length === 0) {
+                        initialRiwayatPelatihan.forEach(async (item) => {
+                            await window.setDoc(window.doc(getCollectionRef('trainings')), item);
+                        });
+                        riwayatPelatihan = initialRiwayatPelatihan;
+                    }
+                    renderApp();
+                });
+            }
+
             // --- Base64 Photo Handling (replaces Firebase Storage logic) ---
             async function convertFileToBase64(file) {
                 return new Promise((resolve, reject) => {
@@ -409,167 +612,7 @@
                 });
             }
 
-            // --- Fetch all data from Firestore ---
-            async function fetchAllDataFromFirestore() {
-                loadingOverlay.style.display = 'flex';
-                try {
-                    // Guru Profile
-                    const guruProfileDoc = await window.getDoc(getDocRef('profile', 'guruProfileDoc'));
-                    if (guruProfileDoc.exists()) {
-                        guruProfile = guruProfileDoc.data();
-                    } else {
-                        // Set initial data if not found
-                        await window.setDoc(getDocRef('profile', 'guruProfileDoc'), initialGuruProfile);
-                        guruProfile = initialGuruProfile;
-                    }
-
-                    // Students
-                    window.onSnapshot(getCollectionRef('students'), (snapshot) => {
-                        studentData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (studentData.length === 0) { // If Firestore is empty, use initial mock data
-                            initialStudentData.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('students')), item);
-                            });
-                            studentData = initialStudentData;
-                        }
-                        renderApp();
-                    });
-
-                    // Schedule (each day as a document)
-                    window.onSnapshot(getCollectionRef('schedules'), (snapshot) => {
-                        const fetchedSchedule = {};
-                        snapshot.docs.forEach(doc => {
-                            fetchedSchedule[doc.id] = doc.data().lessons;
-                        });
-                        schedule = { ...initialSchedule, ...fetchedSchedule }; // Merge with initial to ensure all days exist
-                        if (Object.keys(fetchedSchedule).length === 0) { // If Firestore is empty, initialize with mock data
-                            for (const day in initialSchedule) {
-                                window.setDoc(getDocRef('schedules', day), { lessons: initialSchedule[day] });
-                            }
-                            schedule = initialSchedule;
-                        }
-                        renderApp();
-                    });
-
-
-                    // Daftar Hadir
-                    window.onSnapshot(getCollectionRef('attendance'), (snapshot) => {
-                        daftarHadir = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (daftarHadir.length === 0) {
-                            initialDaftarHadir.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('attendance')), item);
-                            });
-                            daftarHadir = initialDaftarHadir;
-                        }
-                        renderApp();
-                    });
-
-                    // Program Semester Tahunan
-                    window.onSnapshot(getCollectionRef('semester_programs'), (snapshot) => {
-                        programSemesterTahunan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (programSemesterTahunan.length === 0) {
-                            initialProgramSemesterTahunan.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('semester_programs')), item);
-                            });
-                            programSemesterTahunan = initialProgramSemesterTahunan;
-                        }
-                        renderApp();
-                    });
-
-                    // Kalender Pendidikan
-                    window.onSnapshot(getCollectionRef('calendar_events'), (snapshot) => {
-                        kalenderPendidikan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (kalenderPendidikan.length === 0) {
-                            initialKalenderPendidikan.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('calendar_events')), item);
-                            });
-                            kalenderPendidikan = initialKalenderPendidikan;
-                        }
-                        renderApp();
-                    });
-
-                    // Daftar Nilai
-                    window.onSnapshot(getCollectionRef('grades'), (snapshot) => {
-                        daftarNilai = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (daftarNilai.length === 0) {
-                            initialDaftarNilai.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('grades')), item);
-                            });
-                            daftarNilai = initialDaftarNilai;
-                        }
-                        renderApp();
-                    });
-
-                    // Asesmen
-                    window.onSnapshot(getCollectionRef('assessments'), (snapshot) => {
-                        asesmen = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (asesmen.length === 0) {
-                            initialAsesmen.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('assessments')), item);
-                            });
-                            asesmen = initialAsesmen;
-                        }
-                        renderApp();
-                    });
-
-                    // Karya Inovatif
-                    window.onSnapshot(getCollectionRef('innovative_works'), (snapshot) => {
-                        karyaInovatif = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (karyaInovatif.length === 0) {
-                            initialKaryaInovatif.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('innovative_works')), item);
-                            });
-                            karyaInovatif = initialKaryaInovatif;
-                        }
-                        renderApp();
-                    });
-
-                    // Program Kerja Guru
-                    window.onSnapshot(getCollectionRef('teacher_programs'), (snapshot) => {
-                        programKerjaGuru = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (programKerjaGuru.length === 0) {
-                            initialProgramKerjaGuru.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('teacher_programs')), item);
-                            });
-                            programKerjaGuru = initialProgramKerjaGuru;
-                        }
-                        renderApp();
-                    });
-
-                    // Modul Ajar
-                    window.onSnapshot(getCollectionRef('teaching_modules'), (snapshot) => {
-                        modulAjar = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (modulAjar.length === 0) {
-                            initialModulAjar.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('teaching_modules')), item);
-                            });
-                            modulAjar = initialModulAjar;
-                        }
-                        renderApp();
-                    });
-
-                    // Riwayat Pelatihan
-                    window.onSnapshot(getCollectionRef('trainings'), (snapshot) => {
-                        riwayatPelatihan = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-                        if (riwayatPelatihan.length === 0) {
-                            initialRiwayatPelatihan.forEach(async (item) => {
-                                await window.setDoc(window.doc(getCollectionRef('trainings')), item);
-                            });
-                            riwayatPelatihan = initialRiwayatPelatihan;
-                        }
-                        renderApp();
-                    });
-
-                } catch (error) {
-                    console.error("Error fetching data from Firestore:", error);
-                    showMessage(`Gagal memuat data: ${error.message}. Coba refresh halaman.`, 'Kesalahan Data');
-                } finally {
-                    loadingOverlay.style.display = 'none';
-                }
-            }
-
-
-            // --- Helper Functions (unchanged, but now interact with Firestore via CRUD operations) ---
+            // --- Helper Functions ---
             function showMessage(message, title = 'Informasi') {
                 messageModal.isOpen = true;
                 messageModal.title = title;
@@ -885,6 +928,9 @@
             }
 
             function renderJadwalMengajarContent() {
+                // Initialize listener for this data if not already done
+                initializeScheduleListener();
+
                 let rowsHtml = '';
                 const days = ['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat']; // Ensure consistent order
                 for (const day of days) {
@@ -1062,6 +1108,9 @@
 
 
             function renderDaftarSiswaContent() {
+                // Initialize listener for this data if not already done
+                initializeStudentsListener();
+
                 let rowsHtml = '';
                 if (studentData.length > 0) {
                     studentData.forEach(student => {
@@ -1200,6 +1249,9 @@
             };
 
             function renderDaftarHadirContent() {
+                // Initialize listener for this data if not already done
+                initializeDaftarHadirListener();
+
                 let filteredDaftarHadir = selectedDateDaftarHadir
                     ? daftarHadir.filter(item => item.date === selectedDateDaftarHadir)
                     : daftarHadir;
@@ -1434,6 +1486,9 @@
 
 
             function renderProgramSemesterTahunanContent() {
+                // Initialize listener for this data if not already done
+                initializeProgramSemesterTahunanListener();
+
                 let rowsHtml = '';
                 if (programSemesterTahunan.length > 0) {
                     programSemesterTahunan.forEach(program => {
@@ -1543,6 +1598,9 @@
 
 
             function renderKalenderPendidikanContent() {
+                // Initialize listener for this data if not already done
+                initializeKalenderPendidikanListener();
+
                 let rowsHtml = '';
                 if (kalenderPendidikan.length > 0) {
                     kalenderPendidikan.forEach(event => {
@@ -1658,6 +1716,9 @@
 
 
             function renderDaftarNilaiContent() {
+                // Initialize listener for this data if not already done
+                initializeDaftarNilaiListener();
+
                 let rowsHtml = '';
                 if (daftarNilai.length > 0) {
                     daftarNilai.forEach(entry => {
@@ -1766,6 +1827,9 @@
 
 
             function renderAsesmenContent() {
+                // Initialize listener for this data if not already done
+                initializeAsesmenListener();
+
                 let rowsHtml = '';
                 if (asesmen.length > 0) {
                     asesmen.forEach(assessment => {
@@ -1891,6 +1955,9 @@
 
 
             function renderKaryaInovatifContent() {
+                // Initialize listener for this data if not already done
+                initializeKaryaInovatifListener();
+
                 let rowsHtml = '';
                 if (karyaInovatif.length > 0) {
                     karyaInovatif.forEach(work => {
@@ -2000,6 +2067,9 @@
 
 
             function renderProgramKerjaGuruContent() {
+                // Initialize listener for this data if not already done
+                initializeProgramKerjaGuruListener();
+
                 let rowsHtml = '';
                 if (programKerjaGuru.length > 0) {
                     programKerjaGuru.forEach(program => {
@@ -2133,6 +2203,9 @@
 
 
             function renderModulAjarContent() {
+                // Initialize listener for this data if not already done
+                initializeModulAjarListener();
+
                 let rowsHtml = '';
                 if (modulAjar.length > 0) {
                     modulAjar.forEach(module => {
@@ -2241,6 +2314,9 @@
 
 
             function renderRiwayatPelatihanContent() {
+                // Initialize listener for this data if not already done
+                initializeRiwayatPelatihanListener();
+
                 let rowsHtml = '';
                 if (riwayatPelatihan.length > 0) {
                     riwayatPelatihan.forEach(training => {
@@ -2561,9 +2637,20 @@
                     await auth.signOut();
                     isLoggedIn = false;
                     activeMenu = 'Dashboard'; // Reset active menu on logout
-                    // Clear local data if needed, or re-fetch initial mock data on next login
-                    // Note: Firestore listeners will automatically update local data on sign-out
-                    // if rules allow, or clear if rules restrict.
+                    // Reset all loaded flags to false so data is re-fetched on next login/access
+                    studentsLoaded = false;
+                    scheduleLoaded = false;
+                    daftarHadirLoaded = false;
+                    programSemesterTahunanLoaded = false;
+                    kalenderPendidikanLoaded = false;
+                    daftarNilaiLoaded = false;
+                    asesmenLoaded = false;
+                    karyaInovatifLoaded = false;
+                    programKerjaGuruLoaded = false;
+                    modulAjarLoaded = false;
+                    riwayatPelatihanLoaded = false;
+
+                    // Clear local data states (optional, as snapshots would repopulate)
                     studentData = [];
                     schedule = JSON.parse(JSON.stringify(initialSchedule));
                     daftarHadir = [];
